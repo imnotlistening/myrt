@@ -19,36 +19,59 @@
 #
 
 # Specify our sources.
-OBJECTS	:= 
+OBJECTS	:= myrt_lexxer.o myrt_parser.o builtin_shapes.o core.o settings.o
+
+# Lexxers.
+LEXXERS := myrt_lexxer.c
 
 # Programs to build.
-PROGS	:= 
+PROGS		:= $(subst .c,,$(shell ls tests/*.c))
+PROJ_LIBS	:= libmyrt.so
+PROJ_LIB_FLAGS	:= -L. $(subst lib,-l, $(subst .so,, $(PROJ_LIBS)))
 
 # Get access to build commands, include path, etc.
 include $(BUILD)/config.mk
 
+# Determine whether we should build architecure specific assembly of whether
+# we should just build the generic C code for the vector arithmetic.
+ifeq ($(ARCH), )
+OBJECTS += arch/vec_generic.o
+else
+OBJECTS += argc/vec_$(ARCH).o
+endif
+
+# Build a list of dependency files.
+DEPS	:= $(shell find | grep \.d$)
+
 # Normal build targets, etc, etc.
-all: $(PROGS)
+all: $(PROJ_LIBS) $(PROGS)
 
 # Some special targets to make the build commands look pretty.
-$(PROGS): %: %.c $(OBJECTS) 
+$(PROGS): %: %.c 
 	$(MSG) " [CCLD] " $@
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $@.c $(OBJECTS) $(LIBS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $@.c $(LIBS) $(PROJ_LIB_FLAGS)
 
-# The lexxer source compiliation.
-#lexxer.c: lexxer.l
-#	$(MSG) " [LEX]  " $@
-#	$(LEX) -o $@ lexxer.l
+# Library building targets.
+libmyrt.so: $(OBJECTS)
+	$(MSG) " [LD]   " $@
+	$(LD) -shared -Wl,-soname=$@ $(OBJECTS) -o $@.$(VERSION) $(LIBS)
+	@ldconfig -n .
+
+# Lexxer source compiliation, if necessary.
+.l.c:
+	$(MSG) " [LEX]  " $@
+	$(LEX) -o $@ $<
 
 # Pull in dynamically generated dependencies. For some reason this has to
 # be *below* the $(PROGS) target. Whatever...
--include .*.d
-.c.o:
+-include $(DEPS)
+.c.o: $(LEXXERS)
 	$(MSG) " [CC]   " $@
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
-	$(CC) -MM $(CFLAGS) $(CPPFLAGS) -c $< > .$(@:.o=.d)
+	$(CC) -MM $(CFLAGS) $(CPPFLAGS) -c $< > \
+		$(dir $(@)).$(notdir $(@:.o=.d))
 
 clean:
-	$(MSG) " [CLEAN]" $(OBJECTS) $(PROGS) lexxer.c
-	@rm -f $(OBJECTS) $(PROGS) lexxer.c
-	@rm -f .*.d
+	$(MSG) " [CLEAN]" $(PROGS) $(PROJ_LIBS)* $(OBJECTS) $(LEXXERS)
+	@rm -f $(OBJECTS) $(PROGS) $(PROJ_LIBS)* $(LEXXERS)
+	@rm -f $(DEPS)

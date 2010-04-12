@@ -18,6 +18,9 @@
 # Config for this project.
 #
 
+# Specify the version of the project.
+VERSION = 0.0.0
+
 # If verbose is specified then turn on compiler messages.
 ifeq ($(V), 1)
 VERBOSE =
@@ -28,7 +31,7 @@ endif
 # Command definitions.
 MAKE	:= @make --no-print-directory
 CC	:= $(VERBOSE)gcc
-LD	:= $(VERBOSE)gcc # Hehe, just use gcc.
+LD	:= $(VERBOSE)gcc
 LEX	:= $(VERBOSE)flex
 MSG	:= @echo
 
@@ -37,9 +40,15 @@ MSG	:= @echo
 OPT	:= -O3
 
 # Build options.
-CFLAGS	:= -Wall $(OPT) -ggdb
+CFLAGS	:= -Wall $(OPT) -ggdb -fPIC
 CPPFLAGS := -I$(BUILD)/include
-LIBS	:= -lm
+LIBS	:= -lm -lc
 
 # Comment/uncomment for debugging.
 CPPFLAGS += #-D_DEBUG
+
+# Specify the arch for building. If you know your arch is one of the following
+# then use it for assembly optimizations; otherwise just leave it as
+# unspecified for the generic unoptimized C implementation.
+#ARCH	:= x86
+#ARCH	:= x86_64
