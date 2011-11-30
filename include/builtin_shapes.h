@@ -59,6 +59,12 @@ struct _shape_plane {
 	 */
 	struct myrt_vector  norm_d;
 	
+	/*
+	 * Vectors to use for dealing with the size of a plane.
+	 */
+	struct myrt_vector w_hat;
+	struct myrt_vector h_hat;
+
 	/* Other useful things. */
 	struct myrt_color   color;
 	float               length;

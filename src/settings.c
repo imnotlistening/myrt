@@ -44,7 +44,7 @@ struct myrt_setting settings[] = {
 	/*
 	 * Ambient lighting constant.
 	 */
-	{"ambience",	TYPE_FLOAT,	.data.num_f = 128},
+	{"ambience",	TYPE_FLOAT,	.data.num_f = 90},
 
 	/* NULL terminator. */
 	{NULL,		0,		.data.num_i = 0}

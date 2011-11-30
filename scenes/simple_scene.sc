@@ -2,10 +2,10 @@
 # A very simple test scene.
 #
 
-view   [ 0 0 40 ]
+view   [ 30 30 60 ]
 fov    90
-width  1800
-height 900
+width  1200
+height 800
 
 # A plane.
 plane  [ 0 1 0 ] 0 [ 255 0 0 ] 20 20

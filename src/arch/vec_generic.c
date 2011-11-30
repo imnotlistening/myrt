@@ -66,6 +66,18 @@ inline struct myrt_vector *myrt_vec_add(struct myrt_vector *a,
 
 }
 
+inline struct myrt_vector *myrt_vec_sub(struct myrt_vector *a,
+				 struct myrt_vector *b){
+
+	a->x -= b->x;
+	a->y -= b->y;
+	a->z -= b->z;
+	a->w -= b->w;
+
+	return a;
+
+}
+
 inline struct myrt_vector *myrt_vec_scale(struct myrt_vector *a, float factor){
 
 	a->x *= factor;

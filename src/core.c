@@ -220,7 +220,7 @@ void _myrt_trace_point(struct scene_graph *graph, int x, int y){
 	 * Make the initial ray.
 	 */
 	_myrt_generate_ray(graph, &ray, x, y);
-	
+
 	/*
 	 * We must find the particular object that this ray first intersects
 	 * with.
@@ -234,11 +234,7 @@ void _myrt_trace_point(struct scene_graph *graph, int x, int y){
 
 	/* If there is an intersection, work out what color it is. */
 	nearest->color(nearest, &color);
-	myrt_printf(DBG, "Found intersection of ray, color: ");
-	myrt_color_print(&color); printf("\n");
 	screen_write_pixel(&graph->screen, x, y, &color);
-
-	
 
 }
 

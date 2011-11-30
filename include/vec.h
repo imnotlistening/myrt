@@ -50,6 +50,8 @@ inline float               myrt_vec_angle(struct myrt_vector *a,
 inline struct myrt_vector *myrt_vec_normalize(struct myrt_vector *a);
 inline struct myrt_vector *myrt_vec_add(struct myrt_vector *a,
 					struct myrt_vector *b);
+inline struct myrt_vector *myrt_vec_sub(struct myrt_vector *a,
+					struct myrt_vector *b);
 inline struct myrt_vector *myrt_vec_scale(struct myrt_vector *a, float factor);
 inline struct myrt_vector *myrt_vec_cross(struct myrt_vector *a,
 					  struct myrt_vector *b);
@@ -118,6 +120,7 @@ struct myrt_line {
 #define angle(a, b)	(myrt_vec_angle(a, b))
 #define normalize(a)	(myrt_vec_normalize(a))
 #define add(a, b)	(myrt_vec_add(a, b))
+#define sub(a, b)	(myrt_vec_sub(a, b))
 #define scale(a, b)	(myrt_vec_scale(a, b))
 #define cross(a, b)	(myrt_vec_cross(a, b))
 #define copy(a, b)	(myrt_vec_copy(a, b))

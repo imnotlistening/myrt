@@ -43,6 +43,9 @@ int screen_write(struct screen *screen, char *file){
 
 	int y;
 	png_bytep row;
+	png_color_16 color;
+
+	memset(&color, 0, sizeof(color));
 
 	/* Create PNG file. */
         FILE *fp = fopen(file, "wb");
@@ -82,6 +85,8 @@ int screen_write(struct screen *screen, char *file){
 		     screen->height, 8, PNG_COLOR_TYPE_RGB_ALPHA,
 		     PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
 		     PNG_FILTER_TYPE_BASE);
+	png_set_background(screen->png_ptr, &color,
+			   PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
         png_write_info(screen->png_ptr, screen->info_ptr);
 
         /* Write some bytes. */
@@ -112,6 +117,11 @@ int screen_write(struct screen *screen, char *file){
 
 inline void screen_write_channel(struct screen *screen, int x, int y,
 			  int channel, char data){
+
+	/*
+	 * Screen space is upside down apparently. So invert the Y coord.
+	 */
+	y = (screen->height - 1) - y;
 
 	screen->data[4 * (screen->width*y + x) + channel] = data;	
 
