@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with myrt.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Tests the parsing functionality.
+ * Here lies the code to do a ray trace.
  */
 
 #include <myrt.h>
@@ -24,26 +24,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct scene_graph scene;
+struct scene_graph graph;
 
+/*
+ * For now, lets keep it simple. Two args nothing more.
+ * 
+ *   Usage: ./myrt <scene_file> <output_file>
+ * 
+ */
 int main(int argc, char *argv[]){
 
-	if ( argc != 2 )
-		myrt_die(1, "Usage %s <scene_graph>\n", argv[0]);
+	if ( argc < 3 )
+		myrt_die(1, "Usage: ./myrt <scene_file> <output_file>\n");
 
-	myrt_parse(argv[1], &scene);
+	/* Load the scene graph. */
+	if ( myrt_parse(argv[1], &graph) < 0 )
+		myrt_die(1, "Failed to parse scene: %s\n", argv[1]);
 
-	myrt_msg("Camera:       "); displayln(&scene.camera);
-	myrt_msg("FoV:          %.2fx%.2f\n", scene.fov, scene.vert_fov);
-	myrt_msg("Aspect ratio: %.2f:1\n", scene.aratio);
-	myrt_msg("Dimensions:   %dx%d\n", scene.width, scene.height);
-	myrt_msg("FoV basis vectors:\n");
-	myrt_msg("  "); displayln(&scene.h);
-	myrt_msg("  "); displayln(&scene.v);
-	myrt_msg("RPP (horizontal): %f\n", scene.delta_h);
-	myrt_msg("RPP (vertical):   %f\n", scene.delta_v);
+	/* Render. */
+	if ( myrt_trace(&graph) < 0 )
+		myrt_die(1, "Failed to trace scene.\n");
 
-	_myrt_objlist_print(&scene.objs);
+	/* Write it out. */
+	if ( myrt_write(&graph, argv[2]) < 0 )
+		myrt_die(1, "Failed to write scene to file: %s\n", argv[2]);
 
 	return 0;
 

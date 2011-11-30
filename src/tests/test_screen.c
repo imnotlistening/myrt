@@ -15,36 +15,43 @@
  * You should have received a copy of the GNU General Public License
  * along with myrt.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Tests the parsing functionality.
+ * Test the screen PNG writing code.
  */
 
 #include <myrt.h>
-#include <parser.h>
+#include <screen.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 
-struct scene_graph scene;
+struct screen scr;
 
-int main(int argc, char *argv[]){
+#define ROWS	256
+#define COLS	256
 
-	if ( argc != 2 )
-		myrt_die(1, "Usage %s <scene_graph>\n", argv[0]);
+int main(int argc, char **argv){
+	
+	int ret;
+	int x, y;
+	struct myrt_color color;
 
-	myrt_parse(argv[1], &scene);
+	if ( argc < 2 )
+		myrt_die(1, "Usage: test_screen <file>\n");
 
-	myrt_msg("Camera:       "); displayln(&scene.camera);
-	myrt_msg("FoV:          %.2fx%.2f\n", scene.fov, scene.vert_fov);
-	myrt_msg("Aspect ratio: %.2f:1\n", scene.aratio);
-	myrt_msg("Dimensions:   %dx%d\n", scene.width, scene.height);
-	myrt_msg("FoV basis vectors:\n");
-	myrt_msg("  "); displayln(&scene.h);
-	myrt_msg("  "); displayln(&scene.v);
-	myrt_msg("RPP (horizontal): %f\n", scene.delta_h);
-	myrt_msg("RPP (vertical):   %f\n", scene.delta_v);
+	ret = screen_init(&scr, COLS, ROWS);
+	if ( ret < 0 )
+		myrt_die(1, "PNG write failed.\n");
+	
+	for ( y = 0; y < ROWS; y++ ){
+		for ( x = 0; x < COLS; x++ ){
+			COLOR_SET(color, x, 0, y, (x + y) / 2);
+			screen_write_pixel(&scr, x, y, &color);
+		}
+	}
 
-	_myrt_objlist_print(&scene.objs);
+	screen_write(&scr, argv[1]);
 
 	return 0;
 
 }
+

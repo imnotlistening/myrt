@@ -14,8 +14,8 @@
 # height <height>
 #   The width/height in pixels. These should be integers.
 #
-view   [ 40 40 40 ]
-fov    60
+view   [ 0 0 40 ]
+fov    90
 width  1800
 height 900 
 

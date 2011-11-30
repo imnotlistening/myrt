@@ -18,8 +18,8 @@
  * Generic implementation of the vector algebra required for ray tracing.
  */
 
+#include <vec.h>
 #include <myrt.h>
-#include <myrt_vec.h>
 
 #include <math.h>
 #include <stdio.h>
@@ -34,6 +34,17 @@ inline float myrt_vec_dot(struct myrt_vector *a, struct myrt_vector *b){
 inline float myrt_vec_magnitude(struct myrt_vector *a){
 
 	return sqrt(myrt_vec_dot(a, a));
+
+}
+
+inline float myrt_vec_angle(struct myrt_vector *a, struct myrt_vector *b){
+
+	float num = myrt_vec_dot(a, b);
+	float denom = sqrtf(myrt_vec_dot(a, a)) * 
+		sqrtf(myrt_vec_dot(b, b));
+
+	return acosf(num/denom);
+
 
 }
 
@@ -62,6 +73,22 @@ inline struct myrt_vector *myrt_vec_scale(struct myrt_vector *a, float factor){
 	a->z *= factor;
 	a->w *= factor;
 
+	return a;
+
+}
+
+inline struct myrt_vector *myrt_vec_cross(struct myrt_vector *a,
+					  struct myrt_vector *b){
+
+	float x, y, z;
+	x = a->y * b->z - a->z * b->y;
+	y = a->z * b->x - a->x * b->z;
+	z = a->x * b->y - a->y * b->x;
+
+	a->x = x;
+	a->y = y;
+	a->z = z;
+	
 	return a;
 
 }

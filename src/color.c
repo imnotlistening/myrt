@@ -15,36 +15,47 @@
  * You should have received a copy of the GNU General Public License
  * along with myrt.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Tests the parsing functionality.
+ * Built in shapes that can be used.
  */
 
 #include <myrt.h>
-#include <parser.h>
+#include <color.h>
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 
-struct scene_graph scene;
+/*
+ * Convert a vector string into a color.
+ */
+int myrt_strtocol(char *str, struct myrt_color *color){
 
-int main(int argc, char *argv[]){
+	int convs;
+	float x, y, z;
 
-	if ( argc != 2 )
-		myrt_die(1, "Usage %s <scene_graph>\n", argv[0]);
+	convs = sscanf(str, "[ %f %f %f ]", &x, &y, &z);
+	if ( convs < 3 )
+		return -1;
 
-	myrt_parse(argv[1], &scene);
-
-	myrt_msg("Camera:       "); displayln(&scene.camera);
-	myrt_msg("FoV:          %.2fx%.2f\n", scene.fov, scene.vert_fov);
-	myrt_msg("Aspect ratio: %.2f:1\n", scene.aratio);
-	myrt_msg("Dimensions:   %dx%d\n", scene.width, scene.height);
-	myrt_msg("FoV basis vectors:\n");
-	myrt_msg("  "); displayln(&scene.h);
-	myrt_msg("  "); displayln(&scene.v);
-	myrt_msg("RPP (horizontal): %f\n", scene.delta_h);
-	myrt_msg("RPP (vertical):   %f\n", scene.delta_v);
-
-	_myrt_objlist_print(&scene.objs);
-
+	COLOR_SET_PTR(color, x, y, z, 0);
 	return 0;
+
+}
+
+/*
+ * Utility function: print a color out.
+ */
+void myrt_color_print(struct myrt_color *color){
+
+	printf("[ 0x%02x 0x%02x 0x%02x 0x%02x ]",
+	       (unsigned char)color->red, (unsigned char)color->green,
+	       (unsigned char)color->blue, (unsigned char)color->scale);
+
+}
+
+inline void myrt_color_copy(struct myrt_color *dest,
+			    struct myrt_color *source){
+
+	memcpy(dest, source, sizeof(struct myrt_color));
 
 }

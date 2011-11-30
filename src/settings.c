@@ -18,7 +18,7 @@
  * Holds array of settings.
  */
 
-#include <myrt_parser.h>
+#include <parser.h>
 
 /*
  * NULL terminated list of settings.
@@ -28,20 +28,25 @@ struct myrt_setting settings[] = {
 	/*
 	 * Location of the camera.
 	 */
-	{"view",   TYPE_VECTOR,  .data.vec = {10, 10, 10, 0} },
+	{"view",	TYPE_VECTOR,	.data.vec = {10, 10, 10, 0} },
 
 	/*
 	 * Feild of view. In degrees.
 	 */
-	{"fov",    TYPE_FLOAT,   .data.num_f = 45},
+	{"fov",		TYPE_FLOAT,	.data.num_f = 45},
 
 	/*
 	 * Width/height of the rendered image in pixels.
 	 */
-	{"width",  TYPE_INTEGER, .data.num_i = 400},
-	{"height", TYPE_INTEGER, .data.num_i = 200},
+	{"width",	TYPE_INTEGER,	.data.num_i = 400},
+	{"height",	TYPE_INTEGER,	.data.num_i = 200},
+
+	/*
+	 * Ambient lighting constant.
+	 */
+	{"ambience",	TYPE_FLOAT,	.data.num_f = 128},
 
 	/* NULL terminator. */
-	{NULL,     0,            .data.num_i = 0}
+	{NULL,		0,		.data.num_i = 0}
 
 };

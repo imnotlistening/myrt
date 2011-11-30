@@ -18,8 +18,9 @@
  * Defines for the vector algebra.
  */
 
-#include <myrt_vec.h>
-#include <myrt_color.h>
+#include <vec.h>
+#include <color.h>
+#include <screen.h>
 
 #ifndef _MYRT_H_
 #define _MYRT_H_
@@ -48,7 +49,7 @@ struct object {
 	 * Math functions that need to be implemented.
 	 */
 	int   (*intersection)(struct object *this, struct myrt_line *ray,
-			      struct myrt_vector *point);
+			      struct myrt_vector *point, float *t);
 	int   (*color)(struct object *this, struct myrt_color *color);
 
 	/*
@@ -56,16 +57,78 @@ struct object {
 	 */
 	void *priv;
 
-};
+} __attribute__ ((aligned (16)));
+
+/*
+ * List of objects in the scene.
+ */
+struct myrt_objlist {
+
+	struct object **objlist;
+	int             next;
+	int             max;
+
+} __attribute__((aligned (16)));
 
 /*
  * Scene graph. Describes all of the objects to be rendered.
  */
 struct scene_graph {
 
+	/*
+	 * Useful data describing the scene.
+	 */
+	struct myrt_vector 	camera;
+	float              	fov;
+	float	           	vert_fov;
+	float              	aratio;
+	int                	width;
+	int                	height;
 
+	/*
+	 * The two basis vectors required for generating all the required
+	 * rays for tracing.
+	 */
+	struct myrt_vector 	h;
+	struct myrt_vector 	v;
+
+	/*
+	 * Screen data; can be used to make a PNG.
+	 */
+	struct screen      	screen;
+
+	/*
+	 * Float pre computed data for making the rays.
+	 */
+	float              	delta_h; /* In degrees per pixel. */
+	float              	delta_v;
+	float              	x_min; /* -width/2 */
+	float              	y_min; /* -height/2 */
+	float              	cam_mag;
+	struct myrt_vector 	cam_neg;
+
+	/*
+	 * Objects picked up by the parser.
+	 */
+	struct myrt_objlist	objs;
 
 };
+
+/*
+ * Some functions.
+ */
+int  _myrt_scene_init(struct scene_graph *graph);
+void _myrt_generate_ray(struct scene_graph *graph, struct myrt_line *vec,
+			int x, int y);
+int   myrt_trace(struct scene_graph *graph);
+int  _myrt_trace(struct scene_graph *graph, int row_lo, int row_hi);
+void _myrt_trace_point(struct scene_graph *graph, int x, int y);
+int   myrt_write(struct scene_graph *graph, char *file_path);
+void  myrt_objlist_init(struct myrt_objlist *list);
+int   myrt_objlist_add(struct myrt_objlist *list, struct object *obj);
+void _myrt_objlist_print(struct myrt_objlist *list);
+struct object *_myrt_find_intersection(struct myrt_objlist *list,
+				       struct myrt_line *line);
 
 /*
  * Make an myrt_msg() macro for formating messages to the user.

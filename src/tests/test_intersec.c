@@ -18,8 +18,8 @@
  * Test the intersection computations of the built in shapes.
  */
 
+#include <vec.h>
 #include <myrt.h>
-#include <myrt_vec.h>
 #include <builtin_shapes.h>
 
 #include <stdio.h>
@@ -54,6 +54,7 @@ int main(int argc, char *argv[]){
 int test_plane(){
 
 	int ret;
+	float t;
 	struct myrt_vector inter;
 	struct _shape_plane *plane_data;
 
@@ -72,7 +73,7 @@ int test_plane(){
 	VEC_SET(l.traj_n, 1, 0, 0);
 
 	/* And the intersection is... */
-	ret = plane.intersection(&plane, &l, &inter);
+	ret = plane.intersection(&plane, &l, &inter, &t);
 	if ( ret )
 		myrt_msg("Intersection DNE.\n");
 	else 

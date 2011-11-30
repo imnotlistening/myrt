@@ -19,13 +19,14 @@
 #
 
 # Specify our sources.
-OBJECTS	:= myrt_lexxer.o myrt_parser.o builtin_shapes.o core.o settings.o
+OBJECTS	:= lexxer.o parser.o builtin_shapes.o core.o settings.o \
+		screen.o obj_list.o color.o
 
 # Lexxers.
 LEXXERS := myrt_lexxer.c
 
 # Programs to build.
-PROGS		:= $(subst .c,,$(shell ls tests/*.c))
+PROGS		:= myrt $(subst .c,,$(shell ls tests/*.c))
 PROJ_LIBS	:= libmyrt.so
 PROJ_LIB_FLAGS	:= -L. $(subst lib,-l, $(subst .so,, $(PROJ_LIBS)))
 

@@ -19,8 +19,8 @@
  */
 
 #include <myrt.h>
-#include <myrt_color.h>
-#include <myrt_parser.h>
+#include <color.h>
+#include <parser.h>
 #include <builtin_shapes.h>
 
 #include <stdio.h>
@@ -122,16 +122,18 @@ int _sphere_parse(struct object *this){
 	myrt_strtocol(text, &sphere->color);	
 
  success:
+#ifdef _DEBUG
 	myrt_dbg("Parsed sphere: radius = %f\n", sphere->radius);
 	myrt_dbg("  Origin: "); displayln(&sphere->orig);
 	myrt_dbg("  Color:  "); displayln((struct myrt_vector *)&sphere->color);
+#endif
 
 	return 0;
 
 }
 
 int _sphere_intersection(struct object *this, struct myrt_line *ray,
-			 struct myrt_vector *point){
+			 struct myrt_vector *point, float *t){
 
 	return 0;
 
@@ -177,6 +179,7 @@ int _plane_parse(struct object *this){
 
 	int token;
 	char *text;
+	struct myrt_setting *scale;
 	struct _shape_plane *plane = this->priv;
 
 	/*
@@ -198,8 +201,11 @@ int _plane_parse(struct object *this){
 		goto success;
 	if ( ! TOKEN_ACCEPT(token, TOKEN_VECTOR) )
 		PARSE_ERROR("Expect vector as third field for a plane.\n");
-	myrt_strtocol(text, &plane->color);	
- 
+	myrt_strtocol(text, &plane->color);
+	/* Set the default ambient light setting. */
+	scale = lookup_setting("ambience");
+	plane->color.scale = scale->data.num_f;
+
 	/* Next: length */
 	token = myrt_next_token(&text);
 	if ( token == TOKEN_NULL )
@@ -218,9 +224,11 @@ int _plane_parse(struct object *this){
 	plane->width = atof(text);
 
 success:
+#ifdef _DEBUG
 	myrt_dbg("Parsed plane: w/l = %f %f\n", plane->width, plane->length);
 	myrt_dbg("  Coords: "); displayln(&plane->norm_d);
 	myrt_dbg("  Color:  "); displayln((struct myrt_vector *)&plane->color);
+#endif
 
 	return 0;
 
@@ -230,7 +238,7 @@ success:
  * Determine if the passed line intersects this plane.
  */
 int _plane_intersection(struct object *this, struct myrt_line *ray,
-			struct myrt_vector *point){
+			struct myrt_vector *point, float *t){
 
 	struct _shape_plane *plane = this->priv;
 	float inter;
@@ -245,23 +253,21 @@ int _plane_intersection(struct object *this, struct myrt_line *ray,
 	inter = dot(&plane->norm_d, &ray->traj_n);
 	if ( inter == 0 )
 		return -1;
-	if ( ! point )
-		return 0;
+
+	/*
+	 * Check now to see if the intersection is in bounds of the plane.
+	 */
+	
 
 	/*
 	 * If we are here, the intersection exists, and the caller wants
 	 * to know what that point is.
 	 */
 	factor = - dot(&plane->norm_d, &ray->orig) / inter;
-	myrt_dbg("Intersection factor: % 4f\n", factor);
-
 	copy(point, &ray->traj_n);
-	myrt_msg(" -> ray trajectory: "); displayln(point);
-
 	scale(point, factor);
-	myrt_msg(" -> offset from origin: "); displayln(point);
-
 	add(point, &ray->orig);
+	*t = factor;
 
 	return 0;
 
@@ -269,6 +275,10 @@ int _plane_intersection(struct object *this, struct myrt_line *ray,
 
 int _plane_color(struct object *this, struct myrt_color *color){
 
+	struct _shape_plane *plane = this->priv;
+
+	myrt_color_copy(color, &plane->color);
+	
 	return 0;
 
 }

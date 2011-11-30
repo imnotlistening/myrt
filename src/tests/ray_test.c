@@ -21,6 +21,7 @@
 #include <myrt.h>
 #include <parser.h>
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -28,22 +29,36 @@ struct scene_graph scene;
 
 int main(int argc, char *argv[]){
 
+	struct myrt_line blc, brc, tlc, trc, naught;
+
 	if ( argc != 2 )
 		myrt_die(1, "Usage %s <scene_graph>\n", argv[0]);
 
 	myrt_parse(argv[1], &scene);
 
-	myrt_msg("Camera:       "); displayln(&scene.camera);
-	myrt_msg("FoV:          %.2fx%.2f\n", scene.fov, scene.vert_fov);
-	myrt_msg("Aspect ratio: %.2f:1\n", scene.aratio);
-	myrt_msg("Dimensions:   %dx%d\n", scene.width, scene.height);
-	myrt_msg("FoV basis vectors:\n");
-	myrt_msg("  "); displayln(&scene.h);
-	myrt_msg("  "); displayln(&scene.v);
-	myrt_msg("RPP (horizontal): %f\n", scene.delta_h);
-	myrt_msg("RPP (vertical):   %f\n", scene.delta_v);
+	_myrt_generate_ray(&scene, &blc, 0, 0);
+	printf("[ %4d %4d ] traj_n: ", 0, 0);
+	displayln(&blc.traj_n);
+	
+	_myrt_generate_ray(&scene, &brc, scene.width, 0);
+	printf("[ %4d %4d ] traj_n: ", scene.width, 0);
+	displayln(&brc.traj_n);
+	
+	_myrt_generate_ray(&scene, &tlc, 0, scene.height);
+	printf("[ %4d %4d ] traj_n: ", 0, scene.height);
+	displayln(&tlc.traj_n);
 
-	_myrt_objlist_print(&scene.objs);
+	_myrt_generate_ray(&scene, &trc, scene.width, scene.height);
+	printf("[ %4d %4d ] traj_n: ", scene.width, scene.height);
+	displayln(&trc.traj_n);
+
+	_myrt_generate_ray(&scene, &naught, scene.width/2, scene.height/2);
+	printf("[ %4d %4d ] traj_n: ", scene.width/2, scene.height/2);
+	displayln(&naught.traj_n);
+
+	myrt_msg("Angles:\n");
+	myrt_msg("  blc <> brc: %.2f\n",
+		 angle(&blc.traj_n, &brc.traj_n) * 180 / M_PI);
 
 	return 0;
 

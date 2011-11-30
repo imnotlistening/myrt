@@ -18,8 +18,8 @@
  * Test the vector algebra routines. Nothing too crazy.
  */
 
+#include <vec.h>
 #include <myrt.h>
-#include <myrt_vec.h>
 
 #include <stdio.h>
 
