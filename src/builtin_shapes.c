@@ -49,10 +49,13 @@ struct object _builtin_plane = {
 
 };
 
+extern struct object _builtin_light;
+
 void _builtin_init(){
 
 	myrt_add_object(&_builtin_sphere);
 	myrt_add_object(&_builtin_plane);
+	myrt_add_object(&_builtin_light);
 
 }
 
@@ -231,7 +234,7 @@ int _plane_parse(struct object *this){
 	struct _shape_plane *plane = this->priv;
 
 	/*
-	 * First: the origin vector.
+	 * First: the origin vector and the offset.
 	 */
 	token = myrt_next_token(&text);
 	if ( ! TOKEN_ACCEPT(token, TOKEN_VECTOR) )
@@ -275,7 +278,8 @@ int _plane_parse(struct object *this){
 
 success:
 #ifdef _DEBUG
-	myrt_dbg("Parsed plane: w/l = %f %f\n", plane->width, plane->length);
+	myrt_dbg("Parsed plane: w/l = %.2f %.2f\n", 
+		 plane->width, plane->length);
 	myrt_dbg("  Coords: "); displayln(&plane->norm_d);
 	myrt_dbg("  Color:  "); displayln((struct myrt_vector *)&plane->color);
 #endif

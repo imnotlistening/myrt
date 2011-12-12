@@ -29,7 +29,7 @@
 struct _shape_sphere {
 
 	/*
-	 * Pointer to the struct object that contains this shere.
+	 * Pointer to the object that contains this shere.
 	 */
 	struct object      *owner;
 
@@ -62,8 +62,8 @@ struct _shape_plane {
 	/*
 	 * Vectors to use for dealing with the size of a plane.
 	 */
-	struct myrt_vector w_hat;
-	struct myrt_vector h_hat;
+	struct myrt_vector  w_hat;
+	struct myrt_vector  h_hat;
 
 	/* Other useful things. */
 	struct myrt_color   color;

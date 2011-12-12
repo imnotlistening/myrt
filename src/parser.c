@@ -1,4 +1,4 @@
-/*
+ /*
  * (C) Copyright 2011
  * Alex Waterman <imNotListening@gmail.com>
  *
@@ -119,7 +119,6 @@ int myrt_parse(char *file, struct scene_graph *graph){
 	 */
 	if ( _myrt_scene_init(graph) )
 		return -1;
-	
 
 	/*
 	 * Init the screen.
@@ -150,6 +149,7 @@ int _handle_shape(struct scene_graph *graph, char *shape){
 
 	int ret;
 	int offset;
+	struct object *obj;
 
 	/* First, is it a legit shape? */
 	offset = _lookup_object(shape);
@@ -160,7 +160,7 @@ int _handle_shape(struct scene_graph *graph, char *shape){
 	}
 
 	/* Assuming a legit shape, we can access the object array. */
-	struct object *obj = (struct object *)malloc(sizeof(struct object));
+	obj = (struct object *)malloc(sizeof(struct object));
 	if ( ! obj ){
 		myrt_printf(ERROR, "Internal: out of memory.\n");
 		return -1;

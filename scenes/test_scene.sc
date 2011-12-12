@@ -23,7 +23,8 @@ height 900
 # You can put one object per line. The folling built in objects are available:
 #
 #   sphere <vec:origin> [radius] [vec:color]
-#   plain  <vec:normal> <distance> [width] [length]
+#   plain  <vec:normal> <distance> [vec:color] [width] [length]
+#   light  <vec:origin> <intensity> [radius]
 #
 # If a peice of data has vec: before it, then that means it must be a vector.
 # Vectors are defined as follows: [ x y z ] where x, y, and z can be any

@@ -20,7 +20,7 @@
 
 # Specify our sources.
 OBJECTS	:= lexxer.o parser.o builtin_shapes.o core.o settings.o \
-		screen.o obj_list.o color.o
+		screen.o obj_list.o color.o light.o
 
 # Lexxers.
 LEXXERS := myrt_lexxer.c
