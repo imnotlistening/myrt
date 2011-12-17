@@ -2,14 +2,14 @@
 # A very simple test scene.
 #
 
-view    [ 0 40 160 ]
+view    [ 0 50 160 ]
 #view    [ 0 0 150 ]
 fov     65
 width   1200
 height  800
-density 10
-depth   16
-ambience 0.2
+density 5
+ambience  0.1
+aaliasing 16
 
 # Specify the model to use.
 model   ray-trace
@@ -27,4 +27,4 @@ plane  [ 0 1 0 ] 0 [ 150 230 255 ] 65 65
 #light [  20 40 -40 ] 1 4
 #light [ -20 40 -40 ] 1 4
 light [ 40 6 40 ] 1 1
-light [ 40 40 0 ] 0.7 5
+light [ 140 140 -140 ] 0.1 16

@@ -163,6 +163,8 @@ struct scene_graph {
 	unsigned short int	rseed2[3];
 	int			density;
 	int			depth;
+	int			aaliasing;
+	int			aaliasing_sqrt;
 	struct myrt_color	ambient_color;
 	float			ambience;
 	float			diffusion;
@@ -174,7 +176,9 @@ struct scene_graph {
  */
 int  _myrt_scene_init(struct scene_graph *graph);
 void _myrt_generate_ray(struct scene_graph *graph, struct myrt_line *vec,
-			int x, int y);
+			int x, int y, int ax, int ay);
+void _myrt_rand_uvect(unsigned short int *rseed1, unsigned short int *rseed2,
+		      struct myrt_vector *dest);
 int   myrt_trace(struct scene_graph *graph);
 int  _myrt_trace(struct scene_graph *graph, int row_lo, int row_hi);
 void _myrt_rand_vector(unsigned short int *rseed1, unsigned short int *rseed2,

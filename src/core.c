@@ -147,6 +147,7 @@ int _myrt_scene_init(struct scene_graph *graph){
 	graph->aratio = graph->fov / graph->vert_fov;
 	graph->density = lookup_setting("density")->data.num_i;
 	graph->depth = lookup_setting("depth")->data.num_i;
+	graph->aaliasing = lookup_setting("aaliasing")->data.num_i;
 	graph->ambience = lookup_setting("ambience")->data.num_f;
 	if ( graph->ambience > 1 )
 		graph->ambience = 1;
@@ -158,7 +159,7 @@ int _myrt_scene_init(struct scene_graph *graph){
 	graph->ambient_color.scale = 0;
 
 	/*
-	 * Make sure they make sense.
+	 * Make sure the settings make sense.
 	 */
 	if ( graph->fov < 0 ){
 		myrt_printf(ERROR, 
@@ -169,7 +170,15 @@ int _myrt_scene_init(struct scene_graph *graph){
 		myrt_printf(ERROR, "Width/height cannot be negative.\n");
 		return -1;
 	}
-	
+	if ( graph->aaliasing != 1 && graph->aaliasing != 4 &&
+	     graph->aaliasing != 16 ){
+		myrt_printf(WARN, "Invalid A-Aliasing value chosen: %d\n",
+			    graph->aaliasing);
+		myrt_printf(WARN, "  Using x1. (Possible values: x1 x4 x16)\n");
+		graph->aaliasing = 1;
+	}
+	graph->aaliasing_sqrt = sqrt(graph->aaliasing);
+
 	/*
 	 * Fill in some other fields based on the passed data.
 	 */
@@ -192,7 +201,6 @@ int _myrt_scene_init(struct scene_graph *graph){
 
 	h_max = tanf((graph->fov/2) * (M_PI/180)) * graph->cam_mag;
 	v_max = tanf((graph->vert_fov/2) * (M_PI/180)) * graph->cam_mag;
-	myrt_msg("h_max = %f, v_max = %f\n", h_max, v_max);
 	graph->delta_h = (2 * h_max) / graph->width;
 	graph->delta_v = (2 * v_max) / graph->height;
 	graph->x_min = -graph->width / 2.0;
@@ -213,10 +221,10 @@ int _myrt_scene_init(struct scene_graph *graph){
 }
 
 /*
- * Compute the vector and 
+ * Compute an intial ray. ax and ay are the aliasing params.
  */
 void _myrt_generate_ray(struct scene_graph *graph, struct myrt_line *ray,
-			int x, int y){
+			int x, int y, int ax, int ay){
 
 	float h_shift;
 	float v_shift;
@@ -224,8 +232,11 @@ void _myrt_generate_ray(struct scene_graph *graph, struct myrt_line *ray,
 	float y_coord = y + graph->y_min;
 	struct myrt_vector tmp_v;
 
-	h_shift = x_coord * graph->delta_h;
-	v_shift = y_coord * graph->delta_v;
+	x_coord += ax / graph->aaliasing_sqrt;
+	y_coord += ay / graph->aaliasing_sqrt;
+
+	h_shift = (x_coord * graph->delta_h);
+	v_shift = (y_coord * graph->delta_v);
 
 	scale(copy(&ray->traj_n, &graph->h), h_shift);
 	scale(copy(&tmp_v, &graph->v), v_shift);
@@ -327,9 +338,9 @@ void _myrt_trace_point(struct scene_graph *graph, int x, int y){
 	struct myrt_color color = COLOR_INIT(0, 0, 0, 0);
 
 	/*
-	 * Make the initial ray.
+	 * Make the initial ray. No AAliasing for path tracing.
 	 */
-	_myrt_generate_ray(graph, &ray, x, y);
+	_myrt_generate_ray(graph, &ray, x, y, 0, 0);
 
 	/*
 	 * Call the recursive ray casting function a whole bunch of times.
@@ -410,31 +421,40 @@ void _myrt_do_ray_trace(struct scene_graph *graph, struct myrt_line *line,
  */
 int _myrt_trace_ray(struct scene_graph *graph, int x, int y){
 
+	int ax, ay, i = 0;
 	struct myrt_line ray;
-	struct myrt_color color = COLOR_INIT(0, 0, 0, 0);
+	struct myrt_color sample;
+	struct myrt_color pixel = COLOR_INIT(0, 0, 0, 0);
 
-	/*
-	 * Make the initial ray.
-	 */
-	_myrt_generate_ray(graph, &ray, x, y);
+	for ( ax = 0; ax < graph->aaliasing_sqrt; ax++ ){
+		for ( ay = 0; ay < graph->aaliasing_sqrt; ay++ ){
+			/*
+			 * Make the initial ray.
+			 */
+			_myrt_generate_ray(graph, &ray, x, y, ax, ay);
 
-	/*
-	 * Trace the ray.
-	 */
-	_myrt_do_ray_trace(graph, &ray, &color);
+			/*
+			 * Trace the ray.
+			 */
+			_myrt_do_ray_trace(graph, &ray, &sample);
+
+			myrt_color_cmean(&pixel, &sample, i++);
+
+		}
+	}
 
 	/*
 	 * In case stuff is over sampled.
 	 */
-	if ( color.red > 255 )
-		color.red = 255;
-	if ( color.green > 255 )
-		color.green = 255;
-	if ( color.blue > 255 )
-		color.blue = 255;
+	if ( pixel.red > 255 )
+		pixel.red = 255;
+	if ( pixel.green > 255 )
+		pixel.green = 255;
+	if ( pixel.blue > 255 )
+		pixel.blue = 255;
 
-	color.scale = 255;
-	screen_write_pixel(&graph->screen, x, y, &color);
+	pixel.scale = 255;
+	screen_write_pixel(&graph->screen, x, y, &pixel);
 
 	return 0;
 

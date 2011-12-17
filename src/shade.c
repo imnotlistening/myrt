@@ -22,26 +22,84 @@
 #include <light.h>
 
 /*
+ * Given a light source, L, normal N and a ray from the intersection to L,
+ * compute the shading coefficient.
+ */
+float _do_shade_intersection(struct scene_graph *graph, struct light *L,
+			     struct myrt_line *r, struct myrt_vector *N){
+
+	int i;
+	float coeff = 0;
+	float partial;
+	float dist_scale;
+	struct object *obj;
+	struct myrt_line r_base;
+	struct myrt_line r_prime;
+	struct myrt_vector v;
+
+	/*
+	 * Increment the origin of the ray by a small fraction of its traj to
+	 * avoid floating point problems.
+	 */
+	copy(&r_base.orig, &r->traj_n);
+	scale(&r_base.orig, .0001);
+	add(&r_base.orig, &r->orig);
+	copy(&r_base.traj_n, &r->traj_n);
+	copy(&r_prime.orig, &r_base.orig);
+
+	copy(&v, &r_base.orig);
+	sub(&v, &L->visual.orig);
+	dist_scale = L->visual.radius / magnitude(&v);
+
+	/* Compute lots of possible trajectories to the light source. */
+	for ( i = 0; i < graph->density; i++ ){
+
+		/* Modify the trajectory by a small random amount. */
+		_myrt_rand_uvect(graph->rseed1, graph->rseed2, &v);
+		scale(&v, dist_scale);
+		copy(&r_prime.traj_n, &r_base.traj_n);
+		add(&r_prime.traj_n, &v);
+		normalize(&r_prime.traj_n);
+
+		partial = L->intensity * dot(&r_prime.traj_n, N);
+		if ( partial < 0 ){
+			continue;
+		}
+
+		/* See if the light is occluded. */
+		obj = _myrt_find_intersection(&graph->objs, &r_prime, &v);
+		if ( obj != L->owner ){
+			continue;
+		}
+
+		/* I guess not. */
+		coeff += partial;
+		
+
+	}
+
+	return coeff / graph->density;
+
+}
+
+/*
  * Algorithm:
  *   For each of the lights in the scene, see if it is visible from the point
  * in question. If it is then add that shading component S. When all lights
- * have been computed, compute the mean of S by dividing S by the number of
- * lights in the scene.
+ * have been computed, compute the combination of each component.
  */
 void _shade_intersection(struct scene_graph *graph, struct myrt_vector *inter,
 			 struct myrt_vector *norm, struct myrt_line *incident, 
 			 struct myrt_color *color){
 
 	int i;
+	int lights = 0;
 	float comp;
 	float shade = 1;
-	float lights = 0;
 	float shade_factor;
 	struct light *light;
 	struct object *obj;
-	struct object *ray_inter;
-	struct myrt_line norm_traj;
-	struct myrt_vector dummy;
+	struct myrt_line ray;
 
 	for ( i = 0; i < graph->objs.next; i++ ){
 
@@ -51,33 +109,12 @@ void _shade_intersection(struct scene_graph *graph, struct myrt_vector *inter,
 		light = obj->priv;
 
 		/* Compute the vector from the intersection to the light. */
-		copy(&norm_traj.traj_n, &light->visual.orig);
-		sub(&norm_traj.traj_n, inter);
-		normalize(&norm_traj.traj_n);
+		copy(&ray.traj_n, &light->visual.orig);
+		sub(&ray.traj_n, inter);
+		normalize(&ray.traj_n);
+		copy(&ray.orig, inter);
 
-		/*
-		 * Compute the shading factor here so we can skip negative
-		 * shades. 
-		 */
-		comp = dot(&norm_traj.traj_n, norm);
-		if ( comp < 0 )
-			continue;
-
-		/* Now, make a ray that represents this vector. */
-		copy(&norm_traj.orig, &norm_traj.traj_n);
-		scale(&norm_traj.orig, .0001); /* Fix floating point err. */
-		add(&norm_traj.orig, inter);
-
-		/* Figure out if the ray makes it to the light. */
-		ray_inter = _myrt_find_intersection(&graph->objs, &norm_traj,
-						    &dummy);
-		if ( ray_inter != obj )
-			continue;
-
-		/* The ray was not occluded... */
-		comp *= light->intensity;
-		if ( comp > 1 )
-			comp = 1;
+		comp = _do_shade_intersection(graph, light, &ray, norm);
 		shade *= (1 - comp);
 		lights = 1;
 

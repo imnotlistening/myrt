@@ -44,10 +44,11 @@ int main(int argc, char *argv[]){
 
 	/* Print some info about the scene graph. */
 	myrt_msg("Camera location: "); displayln(&graph.camera);
-	myrt_msg("Horizontal FoV: %.02f degrees\n", graph.fov);
-	myrt_msg("Vertical FoV:   %.02f degrees\n", graph.vert_fov);
-	myrt_msg("Ambient light: "); myrt_color_println(&graph.ambient_color);
-	myrt_msg("Depth = %d, Density = %d\n", graph.depth, graph.density);
+	myrt_msg("Horizontal FoV:  %.02f degrees\n", graph.fov);
+	myrt_msg("Vertical FoV:    %.02f degrees\n", graph.vert_fov);
+	myrt_msg("Ambience:        %f\n", graph.ambience);
+	myrt_msg("Anti-aliasing:   x%d\n", graph.aaliasing);
+	myrt_msg("Density          %d\n", graph.density);
 
 	/* Render. */
 	if ( myrt_trace(&graph) < 0 )

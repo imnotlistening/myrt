@@ -64,7 +64,7 @@ struct myrt_setting settings[] = {
 	/*
 	 * Default specular component.
 	 */
-	{"speculance",	TYPE_FLOAT,	.data.num_f = 100},
+	{"aaliasing",	TYPE_INTEGER,	.data.num_i = 1},
 
 	/* NULL terminator. */
 	{NULL,		0,		.data.num_i = 0}

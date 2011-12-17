@@ -36,23 +36,24 @@ int main(int argc, char *argv[]){
 
 	myrt_parse(argv[1], &scene);
 
-	_myrt_generate_ray(&scene, &blc, 0, 0);
+	_myrt_generate_ray(&scene, &blc, 0, 0, 0, 0);
 	printf("[ %4d %4d ] traj_n: ", 0, 0);
 	displayln(&blc.traj_n);
 	
-	_myrt_generate_ray(&scene, &brc, scene.width, 0);
+	_myrt_generate_ray(&scene, &brc, scene.width, 0, 0, 0);
 	printf("[ %4d %4d ] traj_n: ", scene.width, 0);
 	displayln(&brc.traj_n);
 	
-	_myrt_generate_ray(&scene, &tlc, 0, scene.height);
+	_myrt_generate_ray(&scene, &tlc, 0, scene.height, 0, 0);
 	printf("[ %4d %4d ] traj_n: ", 0, scene.height);
 	displayln(&tlc.traj_n);
 
-	_myrt_generate_ray(&scene, &trc, scene.width, scene.height);
+	_myrt_generate_ray(&scene, &trc, scene.width, scene.height, 0, 0);
 	printf("[ %4d %4d ] traj_n: ", scene.width, scene.height);
 	displayln(&trc.traj_n);
 
-	_myrt_generate_ray(&scene, &naught, scene.width/2, scene.height/2);
+	_myrt_generate_ray(&scene, &naught, scene.width/2, scene.height/2,
+			   0, 0);
 	printf("[ %4d %4d ] traj_n: ", scene.width/2, scene.height/2);
 	displayln(&naught.traj_n);
 
