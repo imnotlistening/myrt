@@ -53,9 +53,55 @@ void myrt_color_print(struct myrt_color *color){
 
 }
 
+void myrt_color_println(struct myrt_color *color){
+
+	myrt_color_print(color);
+	putchar('\n');
+
+}
+
 inline void myrt_color_copy(struct myrt_color *dest,
 			    struct myrt_color *source){
 
 	memcpy(dest, source, sizeof(struct myrt_color));
+
+}
+
+/*
+ * Cumulative mean for a list of colors. Add them one element at a time and
+ * make sure you increment n for each new elem.
+ */
+void myrt_color_cmean(struct myrt_color *dest, struct myrt_color *next, int n){
+
+	dest->red = (next->red + (n * dest->red)) / (n + 1);
+	dest->green = (next->green + (n * dest->green)) / (n + 1);
+	dest->blue = (next->blue + (n * dest->blue)) / (n + 1);
+
+}
+
+/*
+ * Only add the RGB components; the scale value is left alone.
+ */
+void myrt_color_add(struct myrt_color *a, struct myrt_color *b){
+
+	a->red = (a->red + b->red) / 2;
+	a->green = (a->green + b->green) / 2;
+	a->blue = (a->blue + b->blue) / 2;
+
+}
+
+void myrt_color_scale(struct myrt_color *c, float scale){
+
+	c->red *= scale;
+	c->green *= scale;
+	c->blue *= scale;
+
+}
+
+void myrt_color_mult(struct myrt_color *a, struct myrt_color *b){
+
+	a->red = (a->red * b->red) / (255);
+	a->green = (a->green * b->green) / (255);
+	a->blue = (a->blue * b->blue) / (255);
 
 }

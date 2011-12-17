@@ -37,7 +37,8 @@ struct object _builtin_light = {
 	.free = _light_free,
 	.parse = _light_parse,
 	.intersection = _light_intersection,
-	.color = _light_color
+	.color = _light_color,
+	.normal = _light_normal
 
 };
 
@@ -64,6 +65,7 @@ int _light_init(struct object *this){
 	COLOR_SET(light->visual.color, 255, 255, 255, 1);
 
 	this->priv = light;
+	this->light = 1;
 
 	return 0;
 
@@ -71,7 +73,7 @@ int _light_init(struct object *this){
 
 void _light_free(struct object *this){
 
-
+	free(this->priv);
 
 }
 
@@ -88,6 +90,7 @@ int _light_parse(struct object *this){
 	if ( ! TOKEN_ACCEPT(token, TOKEN_VECTOR) )
 		PARSE_ERROR("Expect vector as first field for a light.\n");
 	myrt_strtovec(text, &light->visual.orig);
+	light->visual.orig.w = 1;
 
 	/* The intensity of the light. */
 	token = myrt_next_token(&text);
@@ -117,12 +120,24 @@ int _light_parse(struct object *this){
 int _light_intersection(struct object *this, struct myrt_line *ray,
 			  struct myrt_vector *point, float *t){
 
-	return 0;
+	struct light *light = this->priv;
+	return __sphere_intersection(&light->visual, ray, point, t);
 
 }
 
 int _light_color(struct object *this, struct myrt_color *color){
 
+	COLOR_SET_PTR(color, 255, 255, 255, 0);
+	color->scale = 255;
+
 	return 0;
+
+}
+
+int _light_normal(struct object *this, struct myrt_vector *q,
+		  struct myrt_vector *n){
+
+	struct light *light = this->priv;
+	return __sphere_normal(&light->visual, q, n);
 
 }

@@ -25,6 +25,8 @@
 #ifndef _MYRT_H_
 #define _MYRT_H_
 
+struct light;
+
 /*
  * This struct defines the details of a shape. This is the generic struct
  * used to out line a shape or objects required functionality.
@@ -51,6 +53,20 @@ struct object {
 	int   (*intersection)(struct object *this, struct myrt_line *ray,
 			      struct myrt_vector *point, float *t);
 	int   (*color)(struct object *this, struct myrt_color *color);
+	int   (*normal)(struct object *this, struct myrt_vector *q,
+			struct myrt_vector *n);
+
+	/*
+	 * Object specific reflectance and diffuse emittance. These should
+	 * sum to 1.
+	 */
+	float reflectance;
+	float emittance;
+
+	/*
+	 * Set if the object is a light source.
+	 */
+	int   light;
 
 	/*
 	 * Shape specific data structure.
@@ -69,6 +85,33 @@ struct myrt_objlist {
 	int             max;
 
 } __attribute__((aligned (16)));
+
+struct scene_graph;
+
+/*
+ * A model for rendering the scene. The parser keeps track of which model is
+ * specified by the user and tells the renderer which one to use.
+ */
+struct myrt_model {
+
+	/*
+	 * Name of the model for the parser to match against.
+	 */
+	char	*name;
+
+	/*
+	 * The function to do the rendering.
+	 */
+	int	(*trace)(struct scene_graph *graph, int row_lo, int row_hi);
+
+	/*
+	 * Model specific data.
+	 */
+	void	*priv;
+
+};
+
+extern struct myrt_model models[];
 
 /*
  * Scene graph. Describes all of the objects to be rendered.
@@ -111,6 +154,18 @@ struct scene_graph {
 	 * Objects picked up by the parser.
 	 */
 	struct myrt_objlist	objs;
+	struct myrt_model      *model;
+
+	/*
+	 * Global algorithm constraints.
+	 */
+	unsigned short int	rseed1[3];
+	unsigned short int	rseed2[3];
+	int			density;
+	int			depth;
+	struct myrt_color	ambient_color;
+	float			ambience;
+	float			diffusion;
 
 };
 
@@ -122,13 +177,33 @@ void _myrt_generate_ray(struct scene_graph *graph, struct myrt_line *vec,
 			int x, int y);
 int   myrt_trace(struct scene_graph *graph);
 int  _myrt_trace(struct scene_graph *graph, int row_lo, int row_hi);
-void _myrt_trace_point(struct scene_graph *graph, int x, int y);
+void _myrt_rand_vector(unsigned short int *rseed1, unsigned short int *rseed2,
+		       struct myrt_vector *norm, struct myrt_vector *dest);
 int   myrt_write(struct scene_graph *graph, char *file_path);
 void  myrt_objlist_init(struct myrt_objlist *list);
 int   myrt_objlist_add(struct myrt_objlist *list, struct object *obj);
 void _myrt_objlist_print(struct myrt_objlist *list);
 struct object *_myrt_find_intersection(struct myrt_objlist *list,
-				       struct myrt_line *line);
+				       struct myrt_line *line,
+				       struct myrt_vector *p);
+int  _myrt_occlusion(struct scene_graph *graph, struct myrt_vector *q,
+		     struct light *light);
+
+/* Path tracing functions. */
+void _myrt_trace_path(struct scene_graph *graph, struct myrt_line *line,
+		      struct myrt_color *color);
+void _myrt_trace_point(struct scene_graph *graph, int x, int y);
+int  _myrt_model_path_trace(struct scene_graph *graph, int row_lo, int row_hi);
+
+/* Ray tracing functions. */
+int  _myrt_model_ray_trace(struct scene_graph *graph, int row_lo, int row_hi);
+
+/*
+ * Shader.
+ */
+void _shade_intersection(struct scene_graph *graph, struct myrt_vector *inter,
+			 struct myrt_vector *norm, struct myrt_line *incident,
+			 struct myrt_color *color);
 
 /*
  * Make an myrt_msg() macro for formating messages to the user.

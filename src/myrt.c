@@ -21,6 +21,7 @@
 #include <myrt.h>
 #include <parser.h>
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -40,6 +41,13 @@ int main(int argc, char *argv[]){
 	/* Load the scene graph. */
 	if ( myrt_parse(argv[1], &graph) < 0 )
 		myrt_die(1, "Failed to parse scene: %s\n", argv[1]);
+
+	/* Print some info about the scene graph. */
+	myrt_msg("Camera location: "); displayln(&graph.camera);
+	myrt_msg("Horizontal FoV: %.02f degrees\n", graph.fov);
+	myrt_msg("Vertical FoV:   %.02f degrees\n", graph.vert_fov);
+	myrt_msg("Ambient light: "); myrt_color_println(&graph.ambient_color);
+	myrt_msg("Depth = %d, Density = %d\n", graph.depth, graph.density);
 
 	/* Render. */
 	if ( myrt_trace(&graph) < 0 )

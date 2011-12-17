@@ -45,7 +45,6 @@ inline float myrt_vec_angle(struct myrt_vector *a, struct myrt_vector *b){
 
 	return acosf(num/denom);
 
-
 }
 
 inline struct myrt_vector *myrt_vec_normalize(struct myrt_vector *a){

@@ -36,7 +36,7 @@ DIGIT		[\-0-9]
 INTEGER		{DIGIT}+
 FLOAT		{DIGIT}+"."{DIGIT}*
 VECTOR		\[[ \t]*({INTEGER}|{FLOAT})[ \t]+({INTEGER}|{FLOAT})[ \t]+({INTEGER}|{FLOAT})[ \t]*\]
-SHAPE		[a-zA-Z0-9_]+
+COMMAND		[a-zA-Z0-9_\-]+
 
 %%
 
@@ -45,7 +45,7 @@ SHAPE		[a-zA-Z0-9_]+
 {VECTOR}	__parsed_text = yytext; return TOKEN_VECTOR;
 {INTEGER}	__parsed_text = yytext; return TOKEN_INTEGER;
 {FLOAT}		__parsed_text = yytext; return TOKEN_FLOAT;
-{SHAPE}		__parsed_text = strdup(yytext); return TOKEN_SHAPE;
+{COMMAND}	__parsed_text = strdup(yytext); return TOKEN_COMMAND;
 \n		__line_no++; return TOKEN_NEWLINE;
 [ \t]*		
 <<EOF>>		return TOKEN_EOF;

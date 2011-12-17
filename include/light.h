@@ -51,5 +51,7 @@ int   _light_parse(struct object *this);
 int   _light_intersection(struct object *this, struct myrt_line *ray,
 			   struct myrt_vector *point, float *t);
 int   _light_color(struct object *this, struct myrt_color *color);
+int   _light_normal(struct object *this, struct myrt_vector *q,
+		    struct myrt_vector *n);
 
 #endif

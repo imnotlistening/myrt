@@ -36,12 +36,15 @@ extern int __line_no;
  */
 #define TOKEN_NULL	0x00
 #define TOKEN_COMMENT	0x01
-#define TOKEN_SHAPE	0x02
+#define TOKEN_COMMAND	0x02
 #define TOKEN_FLOAT	0x04
 #define TOKEN_VECTOR	0x08
 #define TOKEN_INTEGER	0x10
 #define TOKEN_NEWLINE	0x20
 #define TOKEN_EOF	(~0)
+
+/* An arg to a command thats not a vector or numeric looks like a command. */
+#define TOKEN_ARG	TOKEN_COMMAND
 
 /*
  * Setting struct. Specifies a setting that can be set. :).
@@ -78,6 +81,18 @@ struct myrt_setting {
 extern struct myrt_setting settings[];
 
 /*
+ * Commands for the parser.
+ */
+struct myrt_command {
+
+	char   *name;
+	int	(*command_func)(struct scene_graph *graph);
+
+};
+
+extern struct myrt_command commands[];
+
+/*
  * Functions.
  */
 void _myrt_parse_init();
@@ -86,6 +101,10 @@ int   myrt_parse(char *file, struct scene_graph *graph);
 int   myrt_add_object(struct object *obj);
 int  _myrt_parse_file(FILE *filp, struct scene_graph *graph);
 int   myrt_next_token(char **token_ptr);
+
+struct myrt_command *myrt_command_lookup(char *text);
+int   myrt_command_model(struct scene_graph *graph);
+
 
 /*
  * Settings functions.

@@ -39,7 +39,6 @@ struct _shape_sphere {
 	struct myrt_vector  orig;
 	float               radius;
 	struct myrt_color   color;
-	float               ambience;
 
 };
 
@@ -69,7 +68,6 @@ struct _shape_plane {
 	struct myrt_color   color;
 	float               length;
 	float               width;
-	float               ambience;
 
 };
 
@@ -81,9 +79,15 @@ void  _builtin_init();
 int   _sphere_init(struct object *this);
 void  _sphere_free(struct object *this);
 int   _sphere_parse(struct object *this);
+int   __sphere_intersection(struct _shape_sphere *sphere, struct myrt_line *ray,
+			  struct myrt_vector *point, float *t);
 int   _sphere_intersection(struct object *this, struct myrt_line *ray,
 			   struct myrt_vector *point, float *t);
 int   _sphere_color(struct object *this, struct myrt_color *color);
+int   _sphere_normal(struct object *this, struct myrt_vector *q,
+		     struct myrt_vector *n);
+int   __sphere_normal(struct _shape_sphere *sphere, struct myrt_vector *q,
+		    struct myrt_vector *n);
 
 /*
  * Plane functions.
@@ -94,6 +98,7 @@ int   _plane_parse(struct object *this);
 int   _plane_intersection(struct object *this, struct myrt_line *ray,
 			  struct myrt_vector *point, float *t);
 int   _plane_color(struct object *this, struct myrt_color *color);
-
+int   _plane_normal(struct object *this, struct myrt_vector *q,
+		    struct myrt_vector *n);
 
 #endif

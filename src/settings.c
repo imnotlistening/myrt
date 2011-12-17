@@ -42,9 +42,29 @@ struct myrt_setting settings[] = {
 	{"height",	TYPE_INTEGER,	.data.num_i = 200},
 
 	/*
-	 * Ambient lighting constant.
+	 * Ambient diffuse lighting constant.
 	 */
-	{"ambience",	TYPE_FLOAT,	.data.num_f = 90},
+	{"ambience",	TYPE_FLOAT,	.data.num_f = 55},
+
+	/*
+	 * Density of rays per pixel.
+	 */
+	{"density",	TYPE_INTEGER,	.data.num_i = 200},
+
+	/*
+	 * Maximum depth of recursion
+	 */
+	{"depth",	TYPE_INTEGER,	.data.num_i = 4},
+
+	/*
+	 * Default reflectance.
+	 */
+	{"reflectance",	TYPE_FLOAT,	.data.num_f = 0},
+
+	/*
+	 * Default specular component.
+	 */
+	{"speculance",	TYPE_FLOAT,	.data.num_f = 100},
 
 	/* NULL terminator. */
 	{NULL,		0,		.data.num_i = 0}

@@ -20,7 +20,7 @@
 
 # Specify our sources.
 OBJECTS	:= lexxer.o parser.o builtin_shapes.o core.o settings.o \
-		screen.o obj_list.o color.o light.o
+		screen.o obj_list.o color.o light.o command.o shade.o
 
 # Lexxers.
 LEXXERS := myrt_lexxer.c
@@ -42,7 +42,7 @@ OBJECTS += argc/vec_$(ARCH).o
 endif
 
 # Build a list of dependency files.
-DEPS	:= $(shell find | grep \.d$)
+DEPS	:= $(shell find | grep \\.d$)
 
 # Normal build targets, etc, etc.
 all: $(PROJ_LIBS) $(PROGS)

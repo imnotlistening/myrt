@@ -34,7 +34,8 @@ struct object _builtin_sphere = {
 	.free = _sphere_free,
 	.parse = _sphere_parse,
 	.intersection = _sphere_intersection,
-	.color = _sphere_color
+	.color = _sphere_color,
+	.normal = _sphere_normal
 
 };
 
@@ -45,7 +46,8 @@ struct object _builtin_plane = {
 	.free = _plane_free,
 	.parse = _plane_parse,
 	.intersection = _plane_intersection,
-	.color = _plane_color
+	.color = _plane_color,
+	.normal = _plane_normal
 
 };
 
@@ -109,7 +111,8 @@ int _sphere_parse(struct object *this){
 	token = myrt_next_token(&text);
 	if ( ! TOKEN_ACCEPT(token, TOKEN_VECTOR) )
 		PARSE_ERROR("Expect vector as first field for a sphere.\n");
-	myrt_strtovec(text, &sphere->orig);	
+	myrt_strtovec(text, &sphere->orig);
+	sphere->orig.w = 1;
 
 	/* Next: radius. */
 	token = myrt_next_token(&text);
@@ -138,16 +141,81 @@ int _sphere_parse(struct object *this){
 
 }
 
-int _sphere_intersection(struct object *this, struct myrt_line *ray,
-			 struct myrt_vector *point, float *t){
+/*
+ * Compute the intersection for a sphere. Implemented here so that the light
+ * source can also piggy back of this implementation as well.
+ */
+int __sphere_intersection(struct _shape_sphere *sphere, struct myrt_line *ray,
+			  struct myrt_vector *point, float *t){
+	
+	float v_d;
+	float disc;
+	float v_squared;
+	float v_d_squared;
+	struct myrt_vector v;
+
+	copy(&v, &ray->orig);
+	sub(&v, &sphere->orig);
+
+	/* Compute some temporaries */
+	v_d = dot(&v, &ray->traj_n);
+	v_d_squared = v_d * v_d;
+	v_squared = dot(&v, &v);
+
+	/* The discriminant; if negative, no intersection. */
+	disc = v_d_squared - (v_squared - (sphere->radius * sphere->radius));
+	if ( disc < 0 )
+		return -1;
+	disc = sqrtf(disc);
+
+	/* Otherwise, compute minimum t. */
+	*t = fminf(-v_d + disc, -v_d - disc);
+	if ( *t < 0 )
+		return -1;
+
+	/* Fill in the passed data pointers. */
+	copy(point, &ray->traj_n);
+	scale(point, *t);
+	add(point, &ray->orig);
 
 	return 0;
 
 }
 
-int _sphere_color(struct object *this, struct myrt_color *color){
+int __sphere_normal(struct _shape_sphere *sphere, struct myrt_vector *q,
+		    struct myrt_vector *n){
+
+	copy(n, q);
+	sub(n, &sphere->orig);
+	normalize(n);
 
 	return 0;
+
+}
+
+int _sphere_intersection(struct object *this, struct myrt_line *ray,
+			 struct myrt_vector *point, float *t){
+
+	struct _shape_sphere *sphere = this->priv;
+	return __sphere_intersection(sphere, ray, point, t);
+
+}
+
+int _sphere_color(struct object *this, struct myrt_color *color){
+
+	struct _shape_sphere *sphere = this->priv;
+
+	myrt_color_copy(color, &sphere->color);
+	
+	return 0;
+
+}
+
+int _sphere_normal(struct object *this, struct myrt_vector *q,
+		   struct myrt_vector *n){
+
+	struct _shape_sphere *sphere = this->priv;
+	return __sphere_normal(sphere, q, n);
 
 }
 
@@ -230,7 +298,6 @@ int _plane_parse(struct object *this){
 
 	int token;
 	char *text;
-	struct myrt_setting *scale;
 	struct _shape_plane *plane = this->priv;
 
 	/*
@@ -253,9 +320,6 @@ int _plane_parse(struct object *this){
 	if ( ! TOKEN_ACCEPT(token, TOKEN_VECTOR) )
 		PARSE_ERROR("Expect vector as third field for a plane.\n");
 	myrt_strtocol(text, &plane->color);
-	/* Set the default ambient light setting. */
-	scale = lookup_setting("ambience");
-	plane->color.scale = scale->data.num_f;
 
 	/* Next: length */
 	token = myrt_next_token(&text);
@@ -352,3 +416,17 @@ int _plane_color(struct object *this, struct myrt_color *color){
 	return 0;
 
 }
+
+int _plane_normal(struct object *this, struct myrt_vector *q,
+		  struct myrt_vector *n){
+
+	struct _shape_plane *plane = this->priv;
+
+	copy(n, &plane->norm_d);
+	n->w = 0;
+	normalize(n);
+
+	return 0;
+
+}
+

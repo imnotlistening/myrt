@@ -43,6 +43,18 @@ int             next_offset;
 #define        _INC_SIZE 2
 
 /*
+ * List of models known to the parser.
+ */
+struct myrt_model models[] = {
+
+	{ "path-trace",	_myrt_model_path_trace,	NULL },
+	{ "ray-trace",	_myrt_model_ray_trace,	NULL },
+	{ NULL,		NULL,			NULL }
+
+};
+struct myrt_model *default_model = &models[0];
+
+/*
  * Initialize the parser's internal data. This should be called before any other
  * parsing routines are called.
  */
@@ -107,6 +119,7 @@ int myrt_parse(char *file, struct scene_graph *graph){
 	}
 
 	myrt_objlist_init(&graph->objs);
+	graph->model = default_model;
 
 	/*
 	 * Now parse through the passed file pulling out shapes, etc.
@@ -168,6 +181,9 @@ int _handle_shape(struct scene_graph *graph, char *shape){
 
 	/* And init the shape, etc, etc. */
 	memcpy(obj, &known_objects[offset], sizeof(struct object));
+	obj->reflectance = lookup_setting("reflectance")->data.num_f;
+	obj->emittance = 1 - obj->reflectance;
+	obj->light = 0;
 	ret = obj->init(obj);
 	if ( ret < 0 )
 		return ret;
@@ -228,6 +244,27 @@ int _handle_setting(char *text){
 
 }
 
+/*
+ * This function returns < -1 for total failure (i.e stop parsing), -1 for a
+ * command that might be a shape or setting, and 0 for a command that was
+ * successfully executed.
+ */
+int _handle_command(struct scene_graph *graph, char *text){
+
+	int ret;
+	struct myrt_command *comm;
+
+	if ( (comm = myrt_command_lookup(text)) == NULL ) 
+		return -1;
+
+	ret = comm->command_func(graph);
+	if ( ret < 0 )
+		return -2;
+	return 0;
+
+}
+
+
 int _myrt_parse_file(FILE *filp, struct scene_graph *graph){
 
 	int token, ret;
@@ -244,7 +281,12 @@ int _myrt_parse_file(FILE *filp, struct scene_graph *graph){
 		case TOKEN_NEWLINE:
 			break;
 
-		case TOKEN_SHAPE:
+		case TOKEN_COMMAND:
+			ret = _handle_command(graph, __parsed_text);
+			if ( ret < -1 )
+				return ret;
+			else if ( ret == 0 )
+				break;
 			ret = _handle_setting(__parsed_text);
 			if ( ret == 0 )
 				break;
@@ -283,7 +325,7 @@ int myrt_next_token(char **token_ptr){
 
 	token = yylex();
 	if ( token == TOKEN_FLOAT || token == TOKEN_VECTOR ||
-	     token == TOKEN_INTEGER ){
+	     token == TOKEN_INTEGER || token == TOKEN_ARG ){
 		*token_ptr = __parsed_text;
 		return token;
 	}

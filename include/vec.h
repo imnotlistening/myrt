@@ -70,6 +70,11 @@ struct myrt_line {
 	struct myrt_vector orig;
 	struct myrt_vector traj_n;
 
+	/*
+	 * Keep track of how many relfections we have had.
+	 */
+	int		   reflections;
+
 };
 
 
