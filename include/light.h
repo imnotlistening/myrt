@@ -39,6 +39,7 @@ struct light {
 	 */
 	struct object	       *owner;
 	float			intensity;
+	float			decay;
 
 };
 

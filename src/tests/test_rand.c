@@ -23,7 +23,6 @@
 int main(){
 
 	int i = 0;
-	float theta;
 	unsigned short rseed1[] = {1, 2, 3};
 	unsigned short rseed2[] = {7, -9, 4};
 	struct myrt_vector dest;
@@ -34,10 +33,6 @@ int main(){
 		_myrt_rand_vector(rseed1, rseed2, &norm, &dest);
 		displayln(&dest);
 
-		/*
-		theta = _myrt_normal_sample(rseed);
-		printf("%f\n", theta);
-		*/
 	}
 
 	return 0;

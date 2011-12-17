@@ -21,6 +21,12 @@
 #include <myrt.h>
 #include <light.h>
 
+float _light_decay(struct light *light, float dist){
+
+	return light->decay / (dist*dist + light->decay);
+
+}
+
 /*
  * Given a light source, L, normal N and a ray from the intersection to L,
  * compute the shading coefficient.
@@ -29,6 +35,7 @@ float _do_shade_intersection(struct scene_graph *graph, struct light *L,
 			     struct myrt_line *r, struct myrt_vector *N){
 
 	int i;
+	float dist;
 	float coeff = 0;
 	float partial;
 	float dist_scale;
@@ -49,7 +56,8 @@ float _do_shade_intersection(struct scene_graph *graph, struct light *L,
 
 	copy(&v, &r_base.orig);
 	sub(&v, &L->visual.orig);
-	dist_scale = L->visual.radius / magnitude(&v);
+	dist = magnitude(&v);
+	dist_scale = L->visual.radius / dist;
 
 	/* Compute lots of possible trajectories to the light source. */
 	for ( i = 0; i < graph->density; i++ ){
@@ -61,7 +69,8 @@ float _do_shade_intersection(struct scene_graph *graph, struct light *L,
 		add(&r_prime.traj_n, &v);
 		normalize(&r_prime.traj_n);
 
-		partial = L->intensity * dot(&r_prime.traj_n, N);
+		partial = L->intensity * _light_decay(L, dist) *
+			dot(&r_prime.traj_n, N);
 		if ( partial < 0 ){
 			continue;
 		}

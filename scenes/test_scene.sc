@@ -24,7 +24,7 @@ height 900
 #
 #   sphere <vec:origin> [radius] [vec:color]
 #   plain  <vec:normal> <distance> [vec:color] [width] [length]
-#   light  <vec:origin> <intensity> [radius]
+#   light  <vec:origin> <intensity> [radius] [decay]
 #
 # If a peice of data has vec: before it, then that means it must be a vector.
 # Vectors are defined as follows: [ x y z ] where x, y, and z can be any

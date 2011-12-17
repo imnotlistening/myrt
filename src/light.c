@@ -57,6 +57,7 @@ int _light_init(struct object *this){
 	/* Light fields. */
 	light->owner = this;
 	light->intensity = 1.0;
+	light->decay = 2;
 
 	/* Field defaults for a sphere. */
 	light->visual.owner = this;
@@ -98,7 +99,7 @@ int _light_parse(struct object *this){
 		PARSE_ERROR("Expect numeric as second field for a light.\n");
 	light->intensity = atof(text);
 
-	/* And finally the radius. */
+	/* The radius. */
 	token = myrt_next_token(&text);
 	if ( token == TOKEN_NULL )
 		goto success;
@@ -106,11 +107,20 @@ int _light_parse(struct object *this){
 		PARSE_ERROR("Expect numeric as third field for a light.\n");
 	light->visual.radius = atof(text);
 
+	/* The decay factor. */
+	token = myrt_next_token(&text);
+	if ( token == TOKEN_NULL )
+		goto success;
+	if ( ! TOKEN_ACCEPT(token, TOKEN_FLOAT|TOKEN_INTEGER) )
+		PARSE_ERROR("Expect numeric as fourth field for a light.\n");
+	light->decay = atof(text);
+
  success:
 #ifdef _DEBUG
 	myrt_dbg("Parsed light: radius = %f\n", light->visual.radius);
 	myrt_dbg("  Origin: "); displayln(&light->visual.orig);
 	myrt_dbg("  Intensity: %f\n", light->intensity);
+	myrt_dbg("  decay: %f\n", light->decay);
 #endif
 
 	return 0;
