@@ -102,7 +102,8 @@ struct myrt_model {
 	/*
 	 * The function to do the rendering.
 	 */
-	int	(*trace)(struct scene_graph *graph, int row_lo, int row_hi);
+	int	(*trace)(struct scene_graph *graph,
+			 int row_lo, int row_hi, int tid);
 
 	/*
 	 * Model specific data.
@@ -112,6 +113,16 @@ struct myrt_model {
 };
 
 extern struct myrt_model models[];
+
+struct thread_seed {
+
+	unsigned short int	rseed1[3];
+	unsigned short int	rseed2[3];
+	unsigned short int	rseed3[3];
+
+	unsigned char		padding[46];
+
+} __attribute__ ((aligned (16)));
 
 /*
  * Scene graph. Describes all of the objects to be rendered.
@@ -159,8 +170,6 @@ struct scene_graph {
 	/*
 	 * Global algorithm constraints.
 	 */
-	unsigned short int	rseed1[3];
-	unsigned short int	rseed2[3];
 	int			density;
 	int			depth;
 	int			aaliasing;
@@ -168,6 +177,19 @@ struct scene_graph {
 	struct myrt_color	ambient_color;
 	float			ambience;
 	float			diffusion;
+
+	/*
+	 * Thread related stuff.
+	 */
+	int			threads;
+	struct thread_seed     *rseeds;
+
+};
+
+struct thread_arg {
+
+	int 			tid;
+	struct scene_graph     *graph;
 
 };
 
@@ -190,24 +212,28 @@ void _myrt_objlist_print(struct myrt_objlist *list);
 struct object *_myrt_find_intersection(struct myrt_objlist *list,
 				       struct myrt_line *line,
 				       struct myrt_vector *p);
+int  _myrt_first_glowsection(struct myrt_objlist *list, struct myrt_line *line,
+			     struct light *light);
 int  _myrt_occlusion(struct scene_graph *graph, struct myrt_vector *q,
 		     struct light *light);
 
 /* Path tracing functions. */
 void _myrt_trace_path(struct scene_graph *graph, struct myrt_line *line,
-		      struct myrt_color *color);
-void _myrt_trace_point(struct scene_graph *graph, int x, int y);
-int  _myrt_model_path_trace(struct scene_graph *graph, int row_lo, int row_hi);
+		      struct myrt_color *color, int tid);
+void _myrt_trace_point(struct scene_graph *graph, int x, int y, int tid);
+int  _myrt_model_path_trace(struct scene_graph *graph,
+			    int row_lo, int row_hi, int tid);
 
 /* Ray tracing functions. */
-int  _myrt_model_ray_trace(struct scene_graph *graph, int row_lo, int row_hi);
+int  _myrt_model_ray_trace(struct scene_graph *graph,
+			   int row_lo, int row_hi, int tid);
 
 /*
  * Shader.
  */
 void _shade_intersection(struct scene_graph *graph, struct myrt_vector *inter,
 			 struct myrt_vector *norm, struct myrt_line *incident,
-			 struct myrt_color *color);
+			 struct myrt_color *color, int tid);
 
 /*
  * Make an myrt_msg() macro for formating messages to the user.

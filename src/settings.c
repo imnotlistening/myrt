@@ -66,6 +66,11 @@ struct myrt_setting settings[] = {
 	 */
 	{"aaliasing",	TYPE_INTEGER,	.data.num_i = 1},
 
+	/*
+	 * Threads. 0 implies dont use threading.
+	 */
+	{"threads",	TYPE_INTEGER,	.data.num_i = 0},
+
 	/* NULL terminator. */
 	{NULL,		0,		.data.num_i = 0}
 

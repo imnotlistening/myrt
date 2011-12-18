@@ -104,7 +104,7 @@ int   myrt_next_token(char **token_ptr);
 
 struct myrt_command *myrt_command_lookup(char *text);
 int   myrt_command_model(struct scene_graph *graph);
-
+int   myrt_command_post_process(struct scene_graph *graph);
 
 /*
  * Settings functions.

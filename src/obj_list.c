@@ -81,21 +81,30 @@ void _myrt_objlist_print(struct myrt_objlist *list){
 }
 
 /*
- * Compute the closest intersection of a line and the given list of objects.
+ * If light is non-zero then use the glow intersection comutation for a light
+ * and the regular intersection for a non-light object.
  */
-struct object *_myrt_find_intersection(struct myrt_objlist *list,
-				       struct myrt_line *line,
-				       struct myrt_vector *p){
+struct object *_myrt_do_find_intersection(struct myrt_objlist *list,
+					  struct myrt_line *line,
+					  struct myrt_vector *p, int light){
 
 	int i;
+	int ret;
 	float t, min = MAXFLOAT;
+	struct light *glow;
 	struct object *obj, *closest = NULL;
 	struct myrt_vector tmp;
 
 	for ( i = 0; i < list->next; i++ ){
 
 		obj = list->objlist[i];
-		if ( obj->intersection(obj, line, &tmp, &t) )
+		if ( light && obj->light ){
+			glow = obj->priv;
+			ret = glow->glow_intersect(obj, line, &tmp, &t);
+		} else {
+			ret = obj->intersection(obj, line, &tmp, &t);
+		}
+		if ( ret < 0 )
 			continue; /* No intersection. */
 
 		/*
@@ -112,6 +121,28 @@ struct object *_myrt_find_intersection(struct myrt_objlist *list,
 	}
 
 	return closest;
+
+}
+
+/*
+ * Compute the closest intersection of a line and the given list of objects.
+ */
+struct object *_myrt_find_intersection(struct myrt_objlist *list,
+				       struct myrt_line *line,
+				       struct myrt_vector *p){
+
+	return _myrt_do_find_intersection(list, line, p, 0);
+
+}
+
+/*
+ * Find intersections only use the glow size of lights instead.
+ */
+struct object *_myrt_find_glowsection(struct myrt_objlist *list,
+				      struct myrt_line *line,
+				      struct myrt_vector *p){
+
+	return _myrt_do_find_intersection(list, line, p, 1);
 
 }
 
@@ -140,5 +171,44 @@ int _myrt_occlusion(struct scene_graph *graph, struct myrt_vector *q,
 		return -1;
 
 	return 0;
+
+}
+
+/*
+ * See if the first thing a ray intersects with is the glow radius of a
+ * given light. Other lights are treated normally.
+ */
+int _myrt_first_glowsection(struct myrt_objlist *list, struct myrt_line *line,
+			    struct light *light){
+
+	int i, ret;
+	float t, min = MAXFLOAT;
+	struct object *obj, *closest = NULL;
+	struct myrt_vector tmp;
+
+	for ( i = 0; i < list->next; i++ ){
+
+		obj = list->objlist[i];
+		if ( obj == light->owner ){
+			ret = light->glow_intersect(obj, line, &tmp, &t);
+		} else {
+			ret = obj->intersection(obj, line, &tmp, &t);
+		}
+		if ( ret < 0 )
+			continue; /* No intersection. */
+
+		/*
+		 * If this object's intersection is farther than the current
+		 * closest, just skip it.
+		 */
+		if ( t > min || t <= 0 )
+			continue;
+
+		min = t;
+		closest = obj;
+	
+	}
+
+	return closest == light->owner;
 
 }

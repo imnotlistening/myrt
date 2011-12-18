@@ -24,6 +24,7 @@
 #include <parser.h>
 #include <builtin_shapes.h>
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -58,6 +59,7 @@ int _light_init(struct object *this){
 	light->owner = this;
 	light->intensity = 1.0;
 	light->decay = 2;
+	light->glow_intersect = _light_glowsection;
 
 	/* Field defaults for a sphere. */
 	light->visual.owner = this;
@@ -116,6 +118,7 @@ int _light_parse(struct object *this){
 	light->decay = atof(text);
 
  success:
+	light->glow_radius = light->visual.radius + (2 * light->visual.radius);
 #ifdef _DEBUG
 	myrt_dbg("Parsed light: radius = %f\n", light->visual.radius);
 	myrt_dbg("  Origin: "); displayln(&light->visual.orig);
@@ -128,7 +131,7 @@ int _light_parse(struct object *this){
 }
 
 int _light_intersection(struct object *this, struct myrt_line *ray,
-			  struct myrt_vector *point, float *t){
+			struct myrt_vector *point, float *t){
 
 	struct light *light = this->priv;
 	return __sphere_intersection(&light->visual, ray, point, t);
@@ -149,5 +152,32 @@ int _light_normal(struct object *this, struct myrt_vector *q,
 
 	struct light *light = this->priv;
 	return __sphere_normal(&light->visual, q, n);
+
+}
+
+int _light_glowsection(struct object *this, struct myrt_line *ray,
+		       struct myrt_vector *point, float *t){
+
+	struct light *light = this->priv;
+	struct _shape_sphere glow;
+
+	copy(&glow.orig, &light->visual.orig);
+	glow.radius = light->glow_radius;
+	return __sphere_intersection(&glow, ray, point, t);
+
+}
+
+/*
+ * Compute the intensity of the glow given the distance, dist, from the orig
+ * of the light.
+ */
+float _light_glow_intensity(struct light *light, float dist){
+
+	float k;
+	float d_star = dist - light->visual.radius;
+	
+	k = .2 * (light->glow_radius - light->visual.radius);
+
+	return expf(-d_star/k);
 
 }

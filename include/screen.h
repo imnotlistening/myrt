@@ -51,6 +51,10 @@ inline void screen_write_chan(struct screen *screen, int x, int y,
 			      int channel, char data);
 inline void screen_write_pixel(struct screen *screen, int x, int y, 
 			 struct myrt_color *color);
+void screen_add_channel(struct screen *screen, int x, int y,
+			int channel, unsigned char data);
+void screen_add_pixel(struct screen *screen, int x, int y,
+		      struct myrt_color *color);
 
 #define COLOR_RED	0
 #define COLOR_GREEN	1

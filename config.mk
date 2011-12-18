@@ -42,7 +42,7 @@ OPT	:= -O3
 # Build options.
 CFLAGS	:= -Wall $(OPT) -ggdb -fPIC
 CPPFLAGS := -I$(BUILD)/include
-LIBS	:= -lm -lc -lpng
+LIBS	:= -lm -lc -lpng -lpthread
 
 # Comment/uncomment for debugging.
 CPPFLAGS += #-D_DEBUG

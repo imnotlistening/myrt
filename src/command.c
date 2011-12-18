@@ -20,11 +20,13 @@
 
 #include <myrt.h>
 #include <parser.h>
+#include <post_process.h>
 
 struct myrt_command commands[] = {
 
-	{ "model",	myrt_command_model },
-	{ NULL, 	NULL }
+	{ "model",		myrt_command_model },
+	{ "post-process",	myrt_command_post_process },
+	{ NULL, 		NULL }
 
 };
 
@@ -41,6 +43,13 @@ struct myrt_command *myrt_command_lookup(char *text){
 
 }
 
+/*
+ * Set the model to use. Usage:
+ *
+ *   model <model-name>
+ *
+ * Current available models: ray-trace, path-trace.
+ */
 int myrt_command_model(struct scene_graph *graph){
 
 	int i;
@@ -60,5 +69,39 @@ int myrt_command_model(struct scene_graph *graph){
 	}
 
 	PARSE_ERROR("model: unknown model type: %s\n", text);
+
+}
+
+/*
+ * Specify which post processing effects should be applied. Usage:
+ *
+ *   post-process [effect ...]
+ */
+int myrt_command_post_process(struct scene_graph *graph){
+
+	int token;
+	char *text;
+	struct post_process *proc;
+
+	/*
+	 * Iterate until we receive a null token.
+	 */
+	while ( (token = myrt_next_token(&text)) != TOKEN_NULL ){
+
+		/* See if this is an effect we know about. */
+		proc = myrt_lookup_process(text);
+		if ( ! proc ){
+			myrt_printf(WARN, "Skipping unknown post processing"
+				    "effect: %s\n", text);
+			continue;
+		}
+
+		/* Otherwise, just enable it. */
+		myrt_msg("Enabling post process effect: %s\n", text);
+		proc->enable = 1;
+
+	}
+
+	return 0;
 
 }

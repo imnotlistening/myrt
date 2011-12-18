@@ -116,7 +116,7 @@ int screen_write(struct screen *screen, char *file){
 }
 
 inline void screen_write_channel(struct screen *screen, int x, int y,
-			  int channel, char data){
+				 int channel, char data){
 
 	/*
 	 * Screen space is upside down apparently. So invert the Y coord.
@@ -128,7 +128,7 @@ inline void screen_write_channel(struct screen *screen, int x, int y,
 }
 
 inline void screen_write_pixel(struct screen *screen, int x, int y,
-			 struct myrt_color *color){
+			       struct myrt_color *color){
 
 	screen_write_channel(screen, x, y, COLOR_RED,
 			     (unsigned char)color->red);
@@ -141,3 +141,32 @@ inline void screen_write_pixel(struct screen *screen, int x, int y,
 
 }
 
+void screen_add_channel(struct screen *screen, int x, int y,
+			int channel, unsigned char data){
+
+	unsigned int sum;
+
+	y = (screen->height - 1) - y;
+	sum = screen->data[4 * (screen->width*y + x) + channel] + 
+		(unsigned int)data;
+	if ( sum > 255 )
+		screen->data[4 * (screen->width*y + x) + channel] = 255;
+	else
+		screen->data[4 * (screen->width*y + x) + channel] = 
+			(unsigned char)sum;
+
+}
+
+void screen_add_pixel(struct screen *screen, int x, int y,
+		      struct myrt_color *color){
+
+	screen_add_channel(screen, x, y, COLOR_RED,
+			   (unsigned char)color->red);
+	screen_add_channel(screen, x, y, COLOR_GREEN,
+			   (unsigned char)color->green);
+	screen_add_channel(screen, x, y, COLOR_BLUE,
+			   (unsigned char)color->blue);
+	screen_add_channel(screen, x, y, COLOR_ALPHA,
+			   (unsigned char)color->scale);
+
+}

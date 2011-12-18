@@ -22,12 +22,17 @@
 #include <myrt.h>
 #include <light.h>
 #include <parser.h>
+#include <post_process.h>
 #include <builtin_shapes.h>
 
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <sys/timeb.h>
+
+#define CHUNKS_PER_THREAD	8
 
 /*
  * Required initialization.
@@ -130,8 +135,23 @@ void display_settings(){
 
 }
 
+void _myrt_init_thread_seed(struct thread_seed *seed){
+
+	int i;
+
+	for ( i = 0; i < 3; i++ )
+		seed->rseed1[i] = (unsigned short) (rand() & 0xFFFF);
+	for ( i = 0; i < 3; i++ )
+		seed->rseed2[i] = (unsigned short) (rand() & 0xFFFF);
+	for ( i = 0; i < 3; i++ )
+		seed->rseed3[i] = (unsigned short) (rand() & 0xFFFF);
+
+
+}
+
 int _myrt_scene_init(struct scene_graph *graph){
 
+	int i;
 	float h_max;
 	float v_max;
 
@@ -207,14 +227,22 @@ int _myrt_scene_init(struct scene_graph *graph){
 	graph->y_min = -graph->height / 2.0;
 
 	/*
-	 * Finally, some random state.
+	 * Finally, the thread stuff and random state.
 	 */
-	graph->rseed1[0] = 1989;
-	graph->rseed1[1] = 23;
-	graph->rseed1[2] = -367;
-	graph->rseed2[0] = 12;
-	graph->rseed2[1] = -4523;
-	graph->rseed2[2] = 765;
+	graph->threads = lookup_setting("threads")->data.num_i;
+
+	/* Make some random numbers. */
+	if ( ! graph->threads ){
+		graph->rseeds = (struct thread_seed *)
+			malloc(sizeof(struct thread_seed));
+		_myrt_init_thread_seed(graph->rseeds);
+	} else {
+		graph->rseeds = (struct thread_seed *)
+			malloc(sizeof(struct thread_seed) * graph->threads);
+		for ( i = 0; i < graph->threads; i++ ){
+			_myrt_init_thread_seed(graph->rseeds + i);
+		}
+	}
 
 	return 0;
 
@@ -277,7 +305,7 @@ void _myrt_rand_vector(unsigned short int *rseed1, unsigned short int *rseed2,
 }
 
 void _myrt_trace_path(struct scene_graph *graph, struct myrt_line *line,
-		      struct myrt_color *color){
+		      struct myrt_color *color, int tid){
 
 	struct object *nearest;
 	struct myrt_line refl;
@@ -315,12 +343,13 @@ void _myrt_trace_path(struct scene_graph *graph, struct myrt_line *line,
 	nearest->color(nearest, &col);
 
 	/* Compute the reflected contribution of the light. */
-	_myrt_rand_vector(graph->rseed1, graph->rseed2, &norm, &refl.traj_n);
+	_myrt_rand_vector(graph->rseeds[tid].rseed1,
+			  graph->rseeds[tid].rseed2, &norm, &refl.traj_n);
 	copy(&refl.orig, &refl.traj_n);
 	scale(&refl.orig, 0.0001);
 	add(&refl.orig, &inter);
 	refl.reflections = line->reflections + 1;
-	_myrt_trace_path(graph, &refl, &refl_col);
+	_myrt_trace_path(graph, &refl, &refl_col, tid);
 
 	myrt_color_mult(&col, &refl_col);
 	myrt_color_copy(color, &col);
@@ -330,7 +359,7 @@ void _myrt_trace_path(struct scene_graph *graph, struct myrt_line *line,
 /*
  * Trace a ray through a particular point in the scene graph.
  */
-void _myrt_trace_point(struct scene_graph *graph, int x, int y){
+void _myrt_trace_point(struct scene_graph *graph, int x, int y, int tid){
 
 	int i;
 	struct myrt_line ray;
@@ -346,7 +375,7 @@ void _myrt_trace_point(struct scene_graph *graph, int x, int y){
 	 * Call the recursive ray casting function a whole bunch of times.
 	 */
 	for ( i = 0; i < graph->density; i++ ){
-		_myrt_trace_path(graph, &ray, &tmp);
+		_myrt_trace_path(graph, &ray, &tmp, tid);
 		myrt_color_cmean(&color, &tmp, i);
 	}
 	
@@ -366,7 +395,8 @@ void _myrt_trace_point(struct scene_graph *graph, int x, int y){
 /*
  * Trace a section of the scene graph using a path tracing model.
  */
-int _myrt_model_path_trace(struct scene_graph *graph, int row_lo, int row_hi){
+int _myrt_model_path_trace(struct scene_graph *graph, 
+			   int row_lo, int row_hi, int tid){
 
 	int x, y;
 
@@ -375,7 +405,7 @@ int _myrt_model_path_trace(struct scene_graph *graph, int row_lo, int row_hi){
 
 	for ( y = row_lo; y < row_hi; y++ ){
 		for ( x = 0; x < graph->width; x++ ){
-			_myrt_trace_point(graph, x, y);
+			_myrt_trace_point(graph, x, y, tid);
 		}
 	}
 
@@ -384,7 +414,7 @@ int _myrt_model_path_trace(struct scene_graph *graph, int row_lo, int row_hi){
 }
 
 void _myrt_do_ray_trace(struct scene_graph *graph, struct myrt_line *line,
-			struct myrt_color *color){
+			struct myrt_color *color, int tid){
 
 	struct object *nearest;
 	struct myrt_vector inter;
@@ -412,14 +442,14 @@ void _myrt_do_ray_trace(struct scene_graph *graph, struct myrt_line *line,
 	/*
 	 * Work out the shading for the point.
 	 */
-	_shade_intersection(graph, &inter, &normal, line, color);
+	_shade_intersection(graph, &inter, &normal, line, color, tid);
 
 }
 
 /*
- * One ray deep tracing model. Lighting is computed for every impact.
+ * Pixel by pixel ray tracing model. Lighting is computed for every impact.
  */
-int _myrt_trace_ray(struct scene_graph *graph, int x, int y){
+int _myrt_trace_ray(struct scene_graph *graph, int x, int y, int tid){
 
 	int ax, ay, i = 0;
 	struct myrt_line ray;
@@ -436,7 +466,7 @@ int _myrt_trace_ray(struct scene_graph *graph, int x, int y){
 			/*
 			 * Trace the ray.
 			 */
-			_myrt_do_ray_trace(graph, &ray, &sample);
+			_myrt_do_ray_trace(graph, &ray, &sample, tid);
 
 			myrt_color_cmean(&pixel, &sample, i++);
 
@@ -463,7 +493,8 @@ int _myrt_trace_ray(struct scene_graph *graph, int x, int y){
 /*
  * Trace a scene using a normal reverse ray tracing model.
  */
-int _myrt_model_ray_trace(struct scene_graph *graph, int row_lo, int row_hi){
+int _myrt_model_ray_trace(struct scene_graph *graph,
+			  int row_lo, int row_hi, int tid){
 
 	int x, y;
 
@@ -472,11 +503,96 @@ int _myrt_model_ray_trace(struct scene_graph *graph, int row_lo, int row_hi){
 
 	for ( y = row_lo; y < row_hi; y++ ){
 		for ( x = 0; x < graph->width; x++ ){
-			_myrt_trace_ray(graph, x, y);
+			_myrt_trace_ray(graph, x, y, tid);
 		}
 	}
 
 	return 0;
+
+}
+
+/*
+ * The actual worker for a thread.
+ */
+void *_myrt_do_trace_par(void *data){
+
+	int i;
+	int tid;
+	int start, stop;
+	int chunk_size;
+	struct thread_arg *arg = data;
+	struct scene_graph *graph;
+	
+#ifdef _TIMING
+	time_t t_start;
+	time_t t_delta;
+	struct timeb tmp_time;
+#endif
+
+	tid = arg->tid;
+	graph = arg->graph;
+	chunk_size = graph->height / (CHUNKS_PER_THREAD * graph->threads);
+	if ( chunk_size == 0 )
+		chunk_size = 1;
+
+	/* Now get to work. */
+	for ( i = 0; i < CHUNKS_PER_THREAD; i++ ){
+
+		start = (i * graph->threads + tid) * chunk_size;
+		stop = start + chunk_size;
+
+#ifdef _TIMING
+		ftime(&tmp_time);
+		t_start = (tmp_time.time * 1000) + tmp_time.millitm;
+#endif
+		graph->model->trace(graph, start, stop, tid);
+#ifdef _TIMING
+		ftime(&tmp_time);
+		t_delta = (tmp_time.time * 1000) + tmp_time.millitm;
+		myrt_msg("> [%d] Computed %d -> %d: %u ms\n", tid, start, stop,
+			 (unsigned int) (t_delta - t_start));
+#endif
+
+	}
+
+	myrt_dbg("Thread (%d) done.\n", tid);
+	return 0;
+
+}
+
+/*
+ * Break the scene up into 8 x #threads. Let each thread take parts of the
+ * scene that are multiples of its thread ID (TIDs exist in 0 -> #threads). If
+ * this schedule is insufficient for good parallelization, then I will think
+ * about using something else.
+ */
+int _myrt_trace_par(struct scene_graph *graph){
+
+	int tid;
+	pthread_t threads[graph->threads];
+	struct thread_arg args[graph->threads];
+
+	for ( tid = 0; tid < graph->threads; tid++ ){
+		args[tid].tid = tid;
+		args[tid].graph = graph;
+		if ( pthread_create(&threads[tid], NULL, _myrt_do_trace_par,
+				    &args[tid]) )
+			myrt_die(1, "Failed to start thread.\n");
+	}
+
+	for ( tid = 0; tid < graph->threads; tid++ )
+		pthread_join(threads[tid], NULL);
+
+	return 0;
+
+}
+
+int _myrt_trace_seq(struct scene_graph *graph){
+
+	/*
+	 * Do the trace sequentially (i.e just one thread).
+	 */
+	return graph->model->trace(graph, 0, graph->height, 0);
 
 }
 
@@ -492,10 +608,22 @@ int myrt_trace(struct scene_graph *graph){
 	if ( screen_init(&graph->screen, graph->width, graph->height) )
 		return -1;
 
+	if ( graph->threads ){
+		myrt_msg("Running parallel trace: "
+			 "%d threads\n", graph->threads);
+		_myrt_trace_par(graph);
+	} else {
+		myrt_msg("Running sequential trace\n");
+		_myrt_trace_seq(graph);
+
+	}
+
 	/*
-	 * Now do the trace. To be added later: parallelize this code.
+	 * Now run any post processing effects.
 	 */
-	return graph->model->trace(graph, 0, graph->height);
+	myrt_post_process(graph);
+
+	return 0;
 
 }
 

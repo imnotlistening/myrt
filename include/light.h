@@ -40,6 +40,13 @@ struct light {
 	struct object	       *owner;
 	float			intensity;
 	float			decay;
+	float			glow_radius;
+
+	/*
+	 * For the post processing glow effect of lights.
+	 */
+	int	(*glow_intersect)(struct object *this, struct myrt_line *ray,
+				  struct myrt_vector *point, float *t);
 
 };
 
@@ -54,5 +61,8 @@ int   _light_intersection(struct object *this, struct myrt_line *ray,
 int   _light_color(struct object *this, struct myrt_color *color);
 int   _light_normal(struct object *this, struct myrt_vector *q,
 		    struct myrt_vector *n);
+int   _light_glowsection(struct object *this, struct myrt_line *ray,
+			 struct myrt_vector *point, float *t);
+float _light_glow_intensity(struct light *light, float dist);
 
 #endif

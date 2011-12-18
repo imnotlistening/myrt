@@ -20,10 +20,11 @@
 
 # Specify our sources.
 OBJECTS	:= lexxer.o parser.o builtin_shapes.o core.o settings.o \
-		screen.o obj_list.o color.o light.o command.o shade.o
+		screen.o obj_list.o color.o light.o command.o shade.o \
+		post_process.o
 
 # Lexxers.
-LEXXERS := myrt_lexxer.c
+LEXXERS := lexxer.c
 
 # Programs to build.
 PROGS		:= myrt $(subst .c,,$(shell ls tests/*.c))

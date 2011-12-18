@@ -32,7 +32,8 @@ float _light_decay(struct light *light, float dist){
  * compute the shading coefficient.
  */
 float _do_shade_intersection(struct scene_graph *graph, struct light *L,
-			     struct myrt_line *r, struct myrt_vector *N){
+			     struct myrt_line *r, struct myrt_vector *N,
+			     int tid){
 
 	int i;
 	float dist;
@@ -54,8 +55,8 @@ float _do_shade_intersection(struct scene_graph *graph, struct light *L,
 	copy(&r_base.traj_n, &r->traj_n);
 	copy(&r_prime.orig, &r_base.orig);
 
-	copy(&v, &r_base.orig);
-	sub(&v, &L->visual.orig);
+	copy(&v, &L->visual.orig);
+	sub(&v, &r_base.orig);
 	dist = magnitude(&v);
 	dist_scale = L->visual.radius / dist;
 
@@ -63,7 +64,9 @@ float _do_shade_intersection(struct scene_graph *graph, struct light *L,
 	for ( i = 0; i < graph->density; i++ ){
 
 		/* Modify the trajectory by a small random amount. */
-		_myrt_rand_uvect(graph->rseed1, graph->rseed2, &v);
+		
+		_myrt_rand_uvect(graph->rseeds[tid].rseed1,
+				 graph->rseeds[tid].rseed2, &v);
 		scale(&v, dist_scale);
 		copy(&r_prime.traj_n, &r_base.traj_n);
 		add(&r_prime.traj_n, &v);
@@ -99,7 +102,7 @@ float _do_shade_intersection(struct scene_graph *graph, struct light *L,
  */
 void _shade_intersection(struct scene_graph *graph, struct myrt_vector *inter,
 			 struct myrt_vector *norm, struct myrt_line *incident, 
-			 struct myrt_color *color){
+			 struct myrt_color *color, int tid){
 
 	int i;
 	int lights = 0;
@@ -123,7 +126,7 @@ void _shade_intersection(struct scene_graph *graph, struct myrt_vector *inter,
 		normalize(&ray.traj_n);
 		copy(&ray.orig, inter);
 
-		comp = _do_shade_intersection(graph, light, &ray, norm);
+		comp = _do_shade_intersection(graph, light, &ray, norm, tid);
 		shade *= (1 - comp);
 		lights = 1;
 
