@@ -64,6 +64,24 @@ int main(int argc, char **argv){
 	myrt_msg("z = norm_b + norm_c = "); displayln(&norm_b);
 	myrt_msg("norm_a + z = "); displayln(&norm_a);
 
+	/* Reflections. */
+	VEC_SET(a, 2, 1, -6);
+	VEC_SET(b, -1, 5, 1);
+	VEC_SET(c, -1, -7, 4);
+
+	normalize(&a);
+	normalize(&b);
+	normalize(&c);
+
+	myrt_msg("Computing reflections about A: "); displayln(&a);
+	myrt_msg("  B = "); display(&b);
+	printf(" (theta = %f)\n", angle(&a, &b));
+	myrt_msg("  C = "); display(&c);
+	printf(" (theta = %f)\n", angle(&a, &c));
+	myrt_msg("  B v A = "); display(refl(&b, &a));
+	printf(" (theta = %f)\n", angle(&a, &b));
+	myrt_msg("  C v A = "); display(refl(&c, &a));
+	printf(" (theta = %f)\n", angle(&a, &c));
 	return 0;
 
 }

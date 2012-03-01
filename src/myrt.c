@@ -49,6 +49,7 @@ int main(int argc, char *argv[]){
 	myrt_msg("Ambience:        %f\n", graph.ambience);
 	myrt_msg("Anti-aliasing:   x%d\n", graph.aaliasing);
 	myrt_msg("Density          %d\n", graph.density);
+	myrt_msg("Reflections      %d\n", graph.depth);
 
 	/* Render. */
 	if ( myrt_trace(&graph) < 0 )

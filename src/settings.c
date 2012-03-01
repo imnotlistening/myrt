@@ -44,7 +44,7 @@ struct myrt_setting settings[] = {
 	/*
 	 * Ambient diffuse lighting constant.
 	 */
-	{"ambience",	TYPE_FLOAT,	.data.num_f = 55},
+	{"ambience",	TYPE_FLOAT,	.data.num_f = .4},
 
 	/*
 	 * Density of rays per pixel.
@@ -59,7 +59,7 @@ struct myrt_setting settings[] = {
 	/*
 	 * Default reflectance.
 	 */
-	{"reflectance",	TYPE_FLOAT,	.data.num_f = 0},
+	{"reflectance",	TYPE_FLOAT,	.data.num_f = 0.1},
 
 	/*
 	 * Default specular component.

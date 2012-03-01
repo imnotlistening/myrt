@@ -112,6 +112,20 @@ inline struct myrt_vector *myrt_vec_copy(struct myrt_vector *dest,
 
 }
 
+inline struct myrt_vector *myrt_vec_reflection(struct myrt_vector *inc,
+					       struct myrt_vector *norm){
+
+	struct myrt_vector scaled_n;
+
+	copy(&scaled_n, norm);
+	scale(&scaled_n, 2 * dot(norm, inc));
+	sub(&scaled_n, inc);
+	copy(inc, &scaled_n);
+
+	return inc;
+
+}
+
 void myrt_vec_print(struct myrt_vector *a){
 
 	printf("[% .4f % .4f % .4f % .4f]", a->x, a->y, a->z, a->w);
@@ -133,3 +147,4 @@ void myrt_vec_display(struct myrt_vector *a, char *msg){
 	printf("\n");
 
 }
+

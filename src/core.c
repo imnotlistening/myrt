@@ -413,12 +413,24 @@ int _myrt_model_path_trace(struct scene_graph *graph,
 
 }
 
+/*
+ * Core ray tracing code. Compute the color of a given point that is intersected
+ * by the passed line.
+ */
 void _myrt_do_ray_trace(struct scene_graph *graph, struct myrt_line *line,
 			struct myrt_color *color, int tid){
 
 	struct object *nearest;
+	struct myrt_line refl_ray;
+	struct myrt_color diffuse;
+	struct myrt_color reflected;
 	struct myrt_vector inter;
 	struct myrt_vector normal;
+
+	if ( line->reflections > graph->depth ){
+		myrt_color_copy(color, &graph->ambient_color);
+		return;
+	}
 
 	/*
 	 * First things first, compute the first intersection of the passed
@@ -426,23 +438,58 @@ void _myrt_do_ray_trace(struct scene_graph *graph, struct myrt_line *line,
 	 */
 	nearest = _myrt_find_intersection(&graph->objs, line, &inter);
 	if ( nearest == NULL ){
-		COLOR_SET_PTR(color, 0, 0, 0, 0);
+		if ( line->reflections == 0 )
+			COLOR_SET_PTR(color, 0, 0, 0, 0);
+		else
+			myrt_color_copy(color, &graph->ambient_color);
 		return;
 	}
 
 	/*
 	 * Figure out the color and normal of the object where we intersected.
 	 */
-	nearest->color(nearest, color);
+	nearest->color(nearest, &diffuse);
 	nearest->normal(nearest, &inter, &normal);
 
-	if ( nearest->light )
+	if ( nearest->light ){
+		myrt_color_copy(color, &diffuse);
 		return;
+	}
 
 	/*
 	 * Work out the shading for the point.
 	 */
-	_shade_intersection(graph, &inter, &normal, line, color, tid);
+	_shade_intersection(graph, &inter, &normal, line, &diffuse, tid);
+	/*printf("Shaded (%d): [%.0f %.0f %.0f]\n", line->reflections,
+	  diffuse.red, diffuse.green, diffuse.blue);*/
+
+	/*
+	 * Work out the reflectance (if its non-zero);
+	 */
+	if ( nearest->reflectance == 0 ){
+		COLOR_SET(reflected, 0, 0, 0, 0);
+	} else {
+		/* Compute the reflected ray. */
+		copy(&refl_ray.orig, &line->traj_n);
+		scale(&refl_ray.orig, .1);
+		add(&refl_ray.orig, &line->orig);
+		copy(&refl_ray.traj_n, &line->traj_n);
+		refl_ray.reflections = line->reflections + 1;
+		refl(&refl_ray.traj_n, &normal);
+		_myrt_do_ray_trace(graph, &refl_ray, &reflected, tid);
+	}
+
+	/*
+	 * Combine the reflected and diffuse components.
+	 */
+	myrt_color_scale(&diffuse, nearest->diffusion);
+	myrt_color_scale(&reflected, nearest->reflectance);
+	if ( line->reflections == -1 && reflected.blue > 150 )
+		printf("reflected color: [%.0f %.0f %.0f] (scale=%f)\n",
+		       reflected.red, reflected.green,
+		       reflected.blue, nearest->reflectance);
+	myrt_color_cadd(&diffuse, &reflected);
+	myrt_color_copy(color, &diffuse);
 
 }
 

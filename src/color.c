@@ -90,6 +90,21 @@ void myrt_color_add(struct myrt_color *a, struct myrt_color *b){
 
 }
 
+/*
+ * Component wise addition. If values go over 255 then they will be truncated
+ * to 255.
+ */
+void myrt_color_cadd(struct myrt_color *a, struct myrt_color *b){
+
+	a->red += b->red;
+	if ( a->red > 255 ) a->red = 255;
+	a->green += b->green;
+	if ( a->green > 255 ) a->green = 255;
+	a->blue += b->blue;
+	if ( a->blue > 255 ) a->blue = 255;
+
+}
+
 void myrt_color_scale(struct myrt_color *c, float scale){
 
 	c->red *= scale;

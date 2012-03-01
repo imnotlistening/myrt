@@ -57,11 +57,10 @@ struct object {
 			struct myrt_vector *n);
 
 	/*
-	 * Object specific reflectance and diffuse emittance. These should
-	 * sum to 1.
+	 * Object specific reflectance and diffusion. These should sum to 1.
 	 */
 	float reflectance;
-	float emittance;
+	float diffusion;
 
 	/*
 	 * Set if the object is a light source.

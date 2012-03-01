@@ -38,6 +38,7 @@ void myrt_color_print(struct myrt_color *color);
 void myrt_color_println(struct myrt_color *color);
 void myrt_color_cmean(struct myrt_color *dest, struct myrt_color *next,
 			 int n);
+void myrt_color_cadd(struct myrt_color *a, struct myrt_color *b);
 void myrt_color_add(struct myrt_color *a, struct myrt_color *b);
 void myrt_color_scale(struct myrt_color *c, float scale);
 void myrt_color_mult(struct myrt_color *a, struct myrt_color *b);

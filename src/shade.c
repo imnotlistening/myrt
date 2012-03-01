@@ -138,8 +138,7 @@ void _shade_intersection(struct scene_graph *graph, struct myrt_vector *inter,
 	 */
 	shade_factor = graph->ambience;
 	if ( lights > 0 )
-		shade_factor += (graph->diffusion * (1-shade));
-	//myrt_msg("shade factor: %f\n", shade_factor);
+		shade_factor += (1-shade);
 	myrt_color_scale(color, shade_factor);
 
 }

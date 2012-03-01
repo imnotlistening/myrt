@@ -182,7 +182,9 @@ int _handle_shape(struct scene_graph *graph, char *shape){
 	/* And init the shape, etc, etc. */
 	memcpy(obj, &known_objects[offset], sizeof(struct object));
 	obj->reflectance = lookup_setting("reflectance")->data.num_f;
-	obj->emittance = 1 - obj->reflectance;
+	obj->diffusion = 1 - obj->reflectance;
+	myrt_msg("Setting reflectance: %f, diffusion %f\n",
+		 obj->reflectance, obj->diffusion);
 	obj->light = 0;
 	ret = obj->init(obj);
 	if ( ret < 0 )

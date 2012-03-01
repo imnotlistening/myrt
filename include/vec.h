@@ -57,6 +57,8 @@ inline struct myrt_vector *myrt_vec_cross(struct myrt_vector *a,
 					  struct myrt_vector *b);
 inline struct myrt_vector *myrt_vec_copy(struct myrt_vector *dest,
 					 struct myrt_vector *src);
+inline struct myrt_vector *myrt_vec_reflection(struct myrt_vector *inc,
+					       struct myrt_vector *norm);
 void                       myrt_vec_print(struct myrt_vector *a);
 void                       myrt_vec_println(struct myrt_vector *a);
 void                       myrt_vec_display(struct myrt_vector *a, char *msg);
@@ -129,6 +131,7 @@ struct myrt_line {
 #define scale(a, b)	(myrt_vec_scale(a, b))
 #define cross(a, b)	(myrt_vec_cross(a, b))
 #define copy(a, b)	(myrt_vec_copy(a, b))
+#define refl(a, b)	(myrt_vec_reflection(a, b))
 #define display(a)	(myrt_vec_print(a))
 #define displayln(a)	(myrt_vec_println(a))
 #define display_msg(a, msg)	(myrt_vec_display(a, msg))
