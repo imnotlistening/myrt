@@ -679,3 +679,33 @@ int myrt_write(struct scene_graph *graph, char *file_path){
 	return screen_write(&graph->screen, file_path);
 
 }
+
+void myrt_vec_print(struct myrt_vector *a){
+
+	printf("[% .4f % .4f % .4f % .4f]", a->x, a->y, a->z, a->w);
+
+
+}
+
+void myrt_vec_println(struct myrt_vector *a){
+
+	myrt_vec_print(a);
+	printf("\n");
+
+}
+
+void myrt_vec_display(struct myrt_vector *a, char *msg){
+
+	myrt_msg(msg);
+	myrt_vec_print(a);
+	printf("\n");
+
+}
+
+inline struct myrt_vector *myrt_vec_copy(struct myrt_vector *dest,
+					 struct myrt_vector *src){
+
+	memcpy(dest, src, sizeof(struct myrt_vector));
+	return dest;
+
+}

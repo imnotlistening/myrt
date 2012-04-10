@@ -39,7 +39,7 @@ typedef struct myrt_vector vec;
 
 /* 
  * Vector functions. All functions store the result in the first operand. They
- * also return pointers to the result in order to faciliate nesting of function
+ * also return pointers to the result in order to facilitate nesting of function
  * calls.
  */
 inline float               myrt_vec_dot(struct myrt_vector *a,

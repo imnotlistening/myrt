@@ -38,12 +38,23 @@ int main(int argc, char **argv){
 	display_msg(&b, "b: ");
 	display_msg(&c, "c: ");
 
+	myrt_msg("Adding two vectors:\n");
+	display_msg(add(&a, &b), "a + b = ");
+	myrt_msg("And fixing them...\n");
+	display_msg(sub(&a, &b), "a - b = ");
+
+	myrt_msg("Some dot products:\n");
+	myrt_msg("dot(a, b) = %f\n", dot(&a, &b));
+
 	myrt_msg("Magnitudes:\n");
 	myrt_msg("  |a| = %f\n", magnitude(&a));
 	myrt_msg("  |b| = %f\n", magnitude(&b));
 	myrt_msg("  |c| = %f\n", magnitude(&c));
 
-	/* Compute the norms. This will also test dot function. */
+	/* Scale a vector. */
+	display_msg(scale(&a, 2), "2 * a = ");
+
+	/* Compute the norms. */
 	normalize(&norm_a);
 	normalize(&norm_b);
 	normalize(&norm_c);
@@ -58,11 +69,6 @@ int main(int argc, char **argv){
 	myrt_msg("  |norm(a)| = %f\n", magnitude(&norm_a));
 	myrt_msg("  |norm(b)| = %f\n", magnitude(&norm_b));
 	myrt_msg("  |norm(c)| = %f\n", magnitude(&norm_c));
-
-	/* Add all the norms and print them out again. */
-	add(&norm_a, add(&norm_b, &norm_c));
-	myrt_msg("z = norm_b + norm_c = "); displayln(&norm_b);
-	myrt_msg("norm_a + z = "); displayln(&norm_a);
 
 	/* Reflections. */
 	VEC_SET(a, 2, 1, -6);
@@ -82,6 +88,15 @@ int main(int argc, char **argv){
 	printf(" (theta = %f)\n", angle(&a, &b));
 	myrt_msg("  C v A = "); display(refl(&c, &a));
 	printf(" (theta = %f)\n", angle(&a, &c));
+
+	/* Test some cross products. */
+	VEC_SET(a, .45, -3, -1);
+	VEC_SET(b, -.33, 11, -.1);
+	VEC_SET(c, 0, 0, 1);
+
+	display_msg(cross(&a, &b), "X x Y = ");
+	display_msg(cross(&b, &c), "Y x Z = ");
+
 	return 0;
 
 }

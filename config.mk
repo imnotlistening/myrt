@@ -31,6 +31,7 @@ endif
 # Command definitions.
 MAKE	:= @make --no-print-directory
 CC	:= $(VERBOSE)gcc
+ASM	:= $(VERBOSE)gcc -Wa,-am
 LD	:= $(VERBOSE)gcc
 LEX	:= $(VERBOSE)flex
 MSG	:= @echo
@@ -47,8 +48,12 @@ LIBS	:= -lm -lc -lpng -lpthread
 # Comment/uncomment for debugging.
 CPPFLAGS += #-D_DEBUG
 
+# Extra CPPFLAGS that may be specified.
+CPPFLAGS += $(EXTRA_CPPFLAGS)
+
 # Specify the arch for building. If you know your arch is one of the following
 # then use it for assembly optimizations; otherwise just leave it as
-# unspecified for the generic unoptimized C implementation.
+# unspecified for the generic unoptimized C implementation. For the time being
+# there are no assembly implementations. Maybe once I have some time.
 #ARCH	:= x86
 #ARCH	:= x86_64

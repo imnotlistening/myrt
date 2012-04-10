@@ -33,7 +33,7 @@ inline float myrt_vec_dot(struct myrt_vector *a, struct myrt_vector *b){
 
 inline float myrt_vec_magnitude(struct myrt_vector *a){
 
-	return sqrt(myrt_vec_dot(a, a));
+	return sqrtf(myrt_vec_dot(a, a));
 
 }
 
@@ -104,14 +104,6 @@ inline struct myrt_vector *myrt_vec_cross(struct myrt_vector *a,
 
 }
 
-inline struct myrt_vector *myrt_vec_copy(struct myrt_vector *dest,
-					 struct myrt_vector *src){
-
-	memcpy(dest, src, sizeof(struct myrt_vector));
-	return dest;
-
-}
-
 inline struct myrt_vector *myrt_vec_reflection(struct myrt_vector *inc,
 					       struct myrt_vector *norm){
 
@@ -125,26 +117,3 @@ inline struct myrt_vector *myrt_vec_reflection(struct myrt_vector *inc,
 	return inc;
 
 }
-
-void myrt_vec_print(struct myrt_vector *a){
-
-	printf("[% .4f % .4f % .4f % .4f]", a->x, a->y, a->z, a->w);
-
-
-}
-
-void myrt_vec_println(struct myrt_vector *a){
-
-	myrt_vec_print(a);
-	printf("\n");
-
-}
-
-void myrt_vec_display(struct myrt_vector *a, char *msg){
-
-	myrt_msg(msg);
-	myrt_vec_print(a);
-	printf("\n");
-
-}
-

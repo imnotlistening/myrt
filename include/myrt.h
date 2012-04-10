@@ -129,6 +129,16 @@ struct thread_seed {
 struct scene_graph {
 
 	/*
+	 * The two basis vectors required for generating all the required
+	 * rays for tracing.
+	 */
+	struct myrt_vector 	h;
+	struct myrt_vector 	v;
+	
+	/* Has to be up here for 16 byte alignment. */
+	struct myrt_vector 	cam_neg;
+
+	/*
 	 * Useful data describing the scene.
 	 */
 	struct myrt_vector 	camera;
@@ -137,13 +147,6 @@ struct scene_graph {
 	float              	aratio;
 	int                	width;
 	int                	height;
-
-	/*
-	 * The two basis vectors required for generating all the required
-	 * rays for tracing.
-	 */
-	struct myrt_vector 	h;
-	struct myrt_vector 	v;
 
 	/*
 	 * Screen data; can be used to make a PNG.
@@ -158,7 +161,6 @@ struct scene_graph {
 	float              	x_min; /* -width/2 */
 	float              	y_min; /* -height/2 */
 	float              	cam_mag;
-	struct myrt_vector 	cam_neg;
 
 	/*
 	 * Objects picked up by the parser.
@@ -183,7 +185,7 @@ struct scene_graph {
 	int			threads;
 	struct thread_seed     *rseeds;
 
-};
+} __attribute__ ((aligned (16)));
 
 struct thread_arg {
 

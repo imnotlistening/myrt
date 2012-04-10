@@ -29,28 +29,23 @@
 struct _shape_sphere {
 
 	/*
-	 * Pointer to the object that contains this shere.
-	 */
-	struct object      *owner;
-
-	/*
 	 * Sphere data.
 	 */
 	struct myrt_vector  orig;
 	float               radius;
 	struct myrt_color   color;
 
-};
+	/*
+	 * Pointer to the object that contains this shere.
+	 */
+	struct object      *owner;
+
+} __attribute__ ((aligned (16)));
 
 /*
  * A plane.
  */
 struct _shape_plane {
-
-	/*
-	 * Pointer to the struct object that contains this plane.
-	 */
-	struct object      *owner;
 
 	/*
 	 * The first 3 elements are the normal vector to the plane. The
@@ -64,12 +59,51 @@ struct _shape_plane {
 	struct myrt_vector  w_hat;
 	struct myrt_vector  h_hat;
 
+	/*
+	 * Pointer to the struct object that contains this plane.
+	 */
+	struct object      *owner;
+
 	/* Other useful things. */
 	struct myrt_color   color;
 	float               length;
 	float               width;
 
-};
+} __attribute__ ((aligned (16)));
+
+/*
+ * A triangle.
+ */
+struct _shape_triangle {
+
+	/*
+	 * Normal to the triangle.
+	 */
+	struct myrt_vector  norm_d;
+
+	/*
+	 * The three points the define the triangle.
+	 */
+	struct myrt_vector  p_0;
+	struct myrt_vector  p_1;
+	struct myrt_vector  p_2;
+
+	/*
+	 * Pointer to the struct object that contains this triangle.
+	 */
+	struct object      *owner;
+
+	/*
+	 * Angle between (p_2 - p_0) and (p_1 - p_0).
+	 */
+	float		    ang;
+
+	/*
+	 * The color, but of course.
+	 */
+	struct myrt_color   color;
+	
+} __attribute__ ((aligned (16)));
 
 void  _builtin_init();
 
@@ -99,6 +133,18 @@ int   _plane_intersection(struct object *this, struct myrt_line *ray,
 			  struct myrt_vector *point, float *t);
 int   _plane_color(struct object *this, struct myrt_color *color);
 int   _plane_normal(struct object *this, struct myrt_vector *q,
+		    struct myrt_vector *n);
+
+/*
+ * Triangle functions.
+ */
+int   _triangle_init(struct object *this);
+void  _triangle_free(struct object *this);
+int   _triangle_parse(struct object *this);
+int   _triangle_intersection(struct object *this, struct myrt_line *ray,
+			  struct myrt_vector *point, float *t);
+int   _triangle_color(struct object *this, struct myrt_color *color);
+int   _triangle_normal(struct object *this, struct myrt_vector *q,
 		    struct myrt_vector *n);
 
 #endif

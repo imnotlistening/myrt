@@ -39,7 +39,7 @@ include $(BUILD)/config.mk
 ifeq ($(ARCH), )
 OBJECTS += arch/vec_generic.o
 else
-OBJECTS += argc/vec_$(ARCH).o
+OBJECTS += arch/vec_$(ARCH).o
 endif
 
 # Build a list of dependency files.
@@ -56,7 +56,7 @@ $(PROGS): %: %.c
 # Library building targets.
 libmyrt.so: $(OBJECTS)
 	$(MSG) " [LD]   " $@
-	$(LD) -shared -Wl,-soname=$@ $(OBJECTS) -o $@.$(VERSION) $(LIBS)
+	$(LD) -shared -Wl,-soname=$@ -fPIC $(OBJECTS) -o $@.$(VERSION) $(LIBS)
 	@ldconfig -n .
 
 # Lexxer source compiliation, if necessary.
@@ -70,6 +70,11 @@ libmyrt.so: $(OBJECTS)
 .c.o: $(LEXXERS)
 	$(MSG) " [CC]   " $@
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	$(CC) -MM $(CFLAGS) $(CPPFLAGS) -c $< > \
+		$(dir $(@)).$(notdir $(@:.o=.d))
+.S.o:
+	$(MSG) " [ASM]  " $@
+	$(ASM) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 	$(CC) -MM $(CFLAGS) $(CPPFLAGS) -c $< > \
 		$(dir $(@)).$(notdir $(@:.o=.d))
 

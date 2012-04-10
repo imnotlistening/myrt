@@ -51,11 +51,24 @@ struct object _builtin_plane = {
 
 };
 
+struct object _builtin_triangle = {
+
+	.name = "triangle",
+	.init = _triangle_init,
+	.free = _triangle_free,
+	.parse = _triangle_parse,
+	.intersection = _triangle_intersection,
+	.color = _triangle_color,
+	.normal = _triangle_normal
+
+};
+
 extern struct object _builtin_light;
 
 void _builtin_init(){
 
 	myrt_add_object(&_builtin_sphere);
+	myrt_add_object(&_builtin_triangle);
 	myrt_add_object(&_builtin_plane);
 	myrt_add_object(&_builtin_light);
 
@@ -430,3 +443,48 @@ int _plane_normal(struct object *this, struct myrt_vector *q,
 
 }
 
+int _triangle_init(struct object *this){
+
+	return 0;
+
+}
+
+void _triangle_free(struct object *this){
+
+	free(this->priv);
+
+}
+
+int _triangle_parse(struct object *this){
+
+	return 0;
+
+}
+
+int _triangle_intersection(struct object *this, struct myrt_line *ray,
+			   struct myrt_vector *point, float *t){
+
+	//struct _shape_triangle *triangle = this->priv;
+	return 0;
+
+}
+
+int _triangle_color(struct object *this, struct myrt_color *color){
+
+	struct _shape_triangle *triangle = this->priv;
+
+	myrt_color_copy(color, &triangle->color);
+	
+	return 0;
+
+}
+
+int _triangle_normal(struct object *this, struct myrt_vector *q,
+		     struct myrt_vector *n){
+
+	//struct _shape_triangle *triangle = this->priv;
+
+
+	return 0;
+
+}
