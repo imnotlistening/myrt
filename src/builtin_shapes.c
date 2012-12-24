@@ -161,30 +161,35 @@ int _sphere_parse(struct object *this){
 int __sphere_intersection(struct _shape_sphere *sphere, struct myrt_line *ray,
 			  struct myrt_vector *point, float *t){
 	
-	float v_d;
+	float a, b, c;
 	float disc;
-	float v_squared;
-	float v_d_squared;
 	struct myrt_vector v;
 
+	/* Compute the 'a' constant in the quadratic formula. */
+	a = dot(&ray->traj_n, &ray->traj_n);
+
+	/* 'b' constant. */
 	copy(&v, &ray->orig);
 	sub(&v, &sphere->orig);
+	b = 2 * dot(&v, &ray->traj_n);
 
-	/* Compute some temporaries */
-	v_d = dot(&v, &ray->traj_n);
-	v_d_squared = v_d * v_d;
-	v_squared = dot(&v, &v);
+	/* And finally, 'c'. */
+	c = dot(&v, &v) - (sphere->radius * sphere->radius);
 
 	/* The discriminant; if negative, no intersection. */
-	disc = v_d_squared - (v_squared - (sphere->radius * sphere->radius));
+	disc = (b * b) - (4 * a * c);
 	if ( disc < 0 )
 		return -1;
 	disc = sqrtf(disc);
 
-	/* Otherwise, compute minimum t. */
-	*t = fminf(-v_d + disc, -v_d - disc);
+	/* 
+	 * Otherwise, compute minimum t, also, make sure we didn't intersect
+	 * the sphere behind the ray's origin.
+	 */
+	*t = fminf(-b + disc, -b - disc);
 	if ( *t < 0 )
 		return -1;
+	*t /= 2 * a;
 
 	/* Fill in the passed data pointers. */
 	copy(point, &ray->traj_n);

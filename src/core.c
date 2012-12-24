@@ -260,8 +260,8 @@ void _myrt_generate_ray(struct scene_graph *graph, struct myrt_line *ray,
 	float y_coord = y + graph->y_min;
 	struct myrt_vector tmp_v;
 
-	x_coord += ax / graph->aaliasing_sqrt;
-	y_coord += ay / graph->aaliasing_sqrt;
+	x_coord += ax / (float) graph->aaliasing_sqrt;
+	y_coord += ay / (float) graph->aaliasing_sqrt;
 
 	h_shift = (x_coord * graph->delta_h);
 	v_shift = (y_coord * graph->delta_v);
