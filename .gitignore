@@ -2,3 +2,8 @@
 *.so
 *~
 *.png
+
+# Some binaries and files we generate.
+libmyrt.so*
+myrt
+lexxer.c
