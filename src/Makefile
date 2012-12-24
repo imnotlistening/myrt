@@ -27,7 +27,7 @@ OBJECTS	:= lexxer.o parser.o builtin_shapes.o core.o settings.o \
 LEXXERS := lexxer.c
 
 # Programs to build.
-PROGS		:= myrt $(subst .c,,$(shell ls tests/*.c))
+PROGS		:= myrt
 PROJ_LIBS	:= libmyrt.so
 PROJ_LIB_FLAGS	:= -L. $(subst lib,-l, $(subst .so,, $(PROJ_LIBS)))
 
